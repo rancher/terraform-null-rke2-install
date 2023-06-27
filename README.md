@@ -1,23 +1,19 @@
-# Terraform AWS Server
+# Terraform GitHub RKE2 Installer
 
-This module provides the basic necessities for provisioning EC2 servers.
+This module uses the official GitHub provider to download RKE2 artifacts and install RKE2 on a server provided.
+It starts the RKE2 service and will join a cluster, but provides only rudimentary configuration.
+To manage your RKE2 cluster using Terraform, please see our terraform-kubernetes-rke2 module,
+which uses the hashicorp/kubernetes provider to configure an RKE2 cluster.
+When testing we don't expect the RKE2 node to pick up workloads automatically, the cluster configuration should decide how to use new nodes.
 
 This is a "Core Module", it shouldn't contain any nested "independent modules". Please see [terraform.md](./terraform.md) for more information.
 
 ## Requirements
 
-### AWS Access
+### GitHub Access
 
-The first step to using the AWS modules is having an AWS account, [here](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html) is a document describing this process.
-You will need an API access key id and API secret key, you can get the API keys [following this tutorial](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#Using_CreateAccessKey).
-
-The Terraform AWS provider uses the AWS Go SDK, which allows the use of either environment variables or [config files](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html#cli-configure-files-settings) for authentication.
-
-You do not need the AWS cli to generate the files, just place them in the proper place and Terraform will find and read them.
-
-You should also have a VPC, Subnet, VPC gateway and all of the necessary resources to connect to servers.
-This module is only concerned with provisioning the servers themselves, not the resources to connect to them.
-If you would like help getting those up and running please see the terraform-aws-access module that we also publish.
+The GitHub provider [provides multiple ways to authenticate](https://registry.terraform.io/providers/integrations/github/latest/docs#authentication) with GitHub.
+For simplicity we use the `GITHUB_TOKEN` environment variable when testing.
 
 ### Nix
 
