@@ -1,0 +1,7 @@
+.terraform*
+*.terraform.*
+*.terraform
+terraform*
+override.*
+*_override.tf
+!terraform.md

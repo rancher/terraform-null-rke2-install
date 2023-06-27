@@ -1,0 +1,2 @@
+# load aws config, expects AWS_USERNAME to be defined
+source ~/.config/aws/${AWS_USERNAME}/rc

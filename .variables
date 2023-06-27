@@ -1,0 +1,5 @@
+export TF_IN_AUTOMATION=1
+export ACME_SERVER_URL="https://acme-v02.api.letsencrypt.org/directory"
+
+# expects parse_git_branch function to be defined
+export PS1="\[\e[31m\]Dev:\[\e[m\] \[\e[32m\]\u\[\e[m\]\[\e[32m\]@\[\e[m\]\[\e[32m\]\h\[\e[m\] \[\e[34m\]\W\[\e[m\] \`parse_git_branch\` "
