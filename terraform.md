@@ -30,10 +30,12 @@ Always explicitly state the dependencies of a module, even when they can be infe
 Most terraform modules have some hierarchy or order of operations.
 Terraform assumes that all resources can be provisioned at the same time, unless some indicator is given.
 Terraform is smart and if you reference a resource within another resource it can usually figure out the hierarchy, but this is inconsistent.
+Many times Terraform has no indication that a resource has a dependency (most often with null resources),
+ so you would need to provide a depends_on block anyways, this states to simply always provide one to help with development/maintenance.
 Maintainers need to understand the order of operations when writing resources,
   so it is very handy to have the dependencies explicitly expressed at the top of the resource.
 This looks somewhat messy and redundant in the code sometimes, but it often prevents race conditions and speeds up the development process.
-I find this also leads to improvements as developers tend to plan concurrency efficiently.
+This also leads to improvements as developers tend to plan concurrency efficiently.
 
 ## Three Uses of Module
 
@@ -68,9 +70,9 @@ Consider if you have an unordered list of resources and you taint one,
   dependent resources refer to the order in the list and get different values for the resource,
   the dependent resources are unable to alter the ids of the dependency in the remote platform,
   they therefore are removed and recreated.
-  The result is that tainting a resource causes _every_ resource in that list to change,
+The result is that tainting a resource causes _every_ resource in that list to change,
   which cascades to all dependent resources, and their dependencies...
-  This is how tainting one ssh key can destroy an entire infrastructure.
+This is how tainting one ssh key can destroy an entire infrastructure.
 The count attribute instead can be used as a flag to turn a resource on or off, like a feature flag.
 Generally this means there is some condition where the resource is not necessary, for instance, if a suitable resource is found in a data call.
   Use the count attribute with a conditional statement and set the count equal to 0 if the statement is false, or 1 if it is true,
@@ -100,11 +102,8 @@ This provides a separation of concerns around data and logic allowing for less w
 Terraform state allows modules to be idempotent within their context by default,
   but what if you want a module to be idempotent across an implementation (or multiple implementations)?
 Combining "select if not creating", "count as a feature flag", and data calls we are able to generate objects only when they need to exist.
-This means you can have modules which stand alone, but are also composable.
-For instance, you should not need to provision a new VPC for every implementation, but for a module to stand alone it may require a VPC.
-This technique allows you to only generate a VPC once (or never, if you create it manually) by querying the provider before generating the resource.
-This also prevents users from having to know or pass the unique ids of resources into modules.
-Modules need selectors to accomplish this, usually in the form of some kind of name or default.
+This technique allows you to, for example, only generate a VPC once (or never, if you create it manually) by querying the provider instead of generating the resource.
+Modules need selectors to accomplish this, usually in the form of some kind of name.
 
 ## Parenthesis Around Ternaries
 
