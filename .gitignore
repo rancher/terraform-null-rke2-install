@@ -5,3 +5,5 @@ terraform*
 override.*
 *_override.tf
 !terraform.md
+rke2*
+*.gz

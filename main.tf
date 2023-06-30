@@ -1,15 +1,22 @@
 locals {
-
+  release         = var.release
+  type            = var.type
+  local_file_path = var.local_file_path
 }
 
-module "download_from_gh" {
 
+module "download" {
+  # skip download if local_file_path is set
+  count   = (local.local_file_path == "" ? 1 : 0)
+  source  = "./modules/download"
+  release = local.release
+  type    = local.type
 }
 
-module "install_on_server" {
-
+module "install" {
+  source = "./modules/install"
 }
 
-module "join_cluster" {
-
+module "join" {
+  source = "./modules/join"
 }
