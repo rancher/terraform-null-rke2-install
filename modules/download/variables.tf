@@ -9,7 +9,7 @@ variable "type" {
   type        = string
   description = <<-EOT
     The designation from the types.tf file to download.
-    Types are currently: linux-amd64, linux-s390x, and windows-amd64.
+    Types are currently: linux-amd64, linux-s390x, and windows-ltsc2022-amd64, and windows-1890-amd64.
     Amd64 types apply to all x86_64 architectures.
   EOT
 }

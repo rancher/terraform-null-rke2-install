@@ -22,6 +22,14 @@ Assumptions:
 - you are sourcing the .envrc and you have the proper rc files in the proper places so they can be sourced as well
   - this generally applies to third party services that Terraform must access in order to work
   - we try to provide as much configuration of Terraform providers in environment variables as possible
-  - in general we try not to include providers that are not used to limit the accounts necessary
 - you are using the latest version of Terraform (or at least the latest version published to Nix packages)
   - minimally version `1.2`, we test on `1.5+`
+
+## Known Issues
+
+* Terraform artifacts: if you don't have a public internet connection you will need to download the terraform providers necessary for this module to work
+  * see https://somspeaks.com/terraform-offline-setup-and-initialization/ as a pretty good tutorial
+  * official documentation:
+    * https://developer.hashicorp.com/terraform/cli/commands/providers/mirror
+    * https://developer.hashicorp.com/terraform/cli/config/config-file#explicit-installation-method-configuration
+  *

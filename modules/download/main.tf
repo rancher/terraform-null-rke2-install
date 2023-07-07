@@ -1,8 +1,8 @@
 locals {
-  tag               = var.release
-  type              = local.types[var.type]
-  file_names        = keys(local.type.downloads)
-  file_designations = values(local.type.downloads)
+  tag       = var.release
+  type      = local.types[var.type]
+  downloads = local.type.downloads
+  assets    = { for a in data.github_release.selected.assets : a.name => a.browser_download_url }
 }
 
 data "github_release" "selected" {
@@ -21,32 +21,32 @@ data "github_release" "selected" {
 #  - external provider requires the local machine to have the required tools installed
 #  - external provider requires the local machine to have access to the internet
 #  - external provider is a "data" resource, so it runs at plan/refresh/compile time, not apply time
+# why not use the installer to download the proper files?
+#  - the installer assumes the system you are running it on is the system you are installing to
+#  - the installer uses local system information to determine which files to download
+#  - there is a chicken egg issue with downloading the installer and running it in the same terraform apply
 
-# external provider resource runs a script that verifies the files and downloads them using wget if they are missing
-# make a map of file_name => download_url from the list of assets in the release, filter by the type.downloads list
-# the local_file objects will be keyed by the file_name eg. local_file["rke2-images.linux-amd64.tar.gz"]
-# this script is idempotent, it will not download files that already exist
-data "external" "file" {
+data "external" "download" {
   depends_on = [data.github_release.selected]
-  for_each   = { for a in data.github_release.selected.assets : a.name => a if contains(local.file_names, a.name) }
-  program    = ["sh", "${path.module}/file.sh"] # WARNING: requires 'sh', 'jq', 'md5sum' and 'awk' to be installed on the local machine
+  # for each download:
+  # - use a generic name (file)
+  #   - genericizing the file names simplifies the install process
+  # - first try to lookup the url from the types.tf, then fallback to the github release assets, finally fallback to an empty string
+  #   - this seems backwards, but it allows the types.tf to override the url if needed
+  for_each = {
+    for a in keys(local.downloads) : local.downloads[a].file => lookup(local.downloads[a], "url", lookup(local.assets, a, ""))
+  }
+  program = ["sh", "${path.module}/file.sh"] # WARNING: requires 'sh' and 'jq' to be installed on the local machine
   query = {
-    # this normalizes the file names so that we can use the same logic for all types
-    file = local.type.downloads[each.key],
-    url  = each.value.browser_download_url,
+    file = each.key,
+    url  = each.value,
   }
 }
-
-# make a map of file_name => download_url from the list of assets in the release, filter by the type.downloads list
-# the local_file objects will be keyed by the file_name eg. local_file["rke2-images.linux-amd64.tar.gz"]
-resource "local_file" "assets" {
-  depends_on = [data.github_release.selected, data.external.file]
-  for_each   = { for a in data.github_release.selected.assets : a.name => a if contains(local.file_names, a.name) }
-  # must use source here because images archive is too large for local_file to read
-  # tmp files should never actually be created, this prevents a race condition at compile/plan/refresh time
-  # designation normalizes the file names so that we can use the same logic for all types
-  source               = (fileexists(local.type.downloads[each.key]) ? local.type.downloads[each.key] : "${each.key}_tmp")
-  filename             = (fileexists(local.type.downloads[each.key]) ? local.type.downloads[each.key] : "${each.key}_tmp")
+resource "local_file" "install" {
+  depends_on           = [data.github_release.selected, data.external.download]
+  for_each             = data.external.download
+  source               = each.value.result.name
+  filename             = each.value.result.name
   file_permission      = "0600"
   directory_permission = "0600"
 }
