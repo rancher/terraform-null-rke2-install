@@ -1,12 +1,6 @@
 output "assets" {
-  value = data.github_release.selected.assets
+  value = local.assets
 }
-output "arch" {
-  value = local.type.arch
+output "files" {
+  value = local.files
 }
-output "type" {
-  value = keys(local.type)[0]
-}
-# output "downloaded" {
-#   value = data.external.download
-# }

@@ -34,3 +34,15 @@ https://www.terraform.io/language/settings/backends/configuration#file
 
 You may want to test this code with slightly different parameters for your environment.
 Check out [Terraform override files](https://developer.hashicorp.com/terraform/language/files/override) as a clean way to modify the inputs without accidentally committing any personalized code.
+
+## Testing
+
+I test manually on a 2019 MacBook Pro with Intel i7 on Ventura.
+
+- I use nix that I have installed using brew
+- I use direnv that I have installed using brew
+- I simply use `direnv allow` to enter the environment
+- I navigate to the `test` directory and run `go test .`
+- I use `override.tf` files to change the values of `examples` to personalized data so that I can run them
+
+Our continuous integration tests in a NixOS container

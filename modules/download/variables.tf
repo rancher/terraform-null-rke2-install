@@ -2,14 +2,23 @@ variable "release" {
   type        = string
   description = <<-EOT
     The value of the git tag associated with the release to find.
+    Use 'latest' to find the latest release.
   EOT
 }
 
-variable "type" {
+variable "arch" {
   type        = string
   description = <<-EOT
-    The designation from the types.tf file to download.
-    Types are currently: linux-amd64, linux-s390x, and windows-ltsc2022-amd64, and windows-1890-amd64.
-    Amd64 types apply to all x86_64 architectures.
+    The architecture of the server to download for.
+    Currently supported values are 'amd64' and 's390x'.
+    Use 'amd64' for all x86_64 systems.
   EOT
+}
+
+variable "system" {
+  type        = string
+  description = <<-EOT
+    The system of the server to download for.
+    The only supported value is 'linux'.
+  EOT 
 }

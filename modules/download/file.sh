@@ -20,9 +20,11 @@ fi
 # Download the file if URL given and file doesn't exist
 if [ ! -z "$URL" ]; then
   if [ "$NAME" = "file not found" ]; then
-    wget -q -O $FILE $URL
+    wget -q -O "$FILE" "$URL"
     NAME="$FILE"
   fi
+else
+  exit 1
 fi
 
 # jq will ensure that the value is properly quoted and escaped to produce a valid JSON string
