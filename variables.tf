@@ -63,3 +63,13 @@ variable "rke2_config" {
   EOT
   default     = ""
 }
+variable "server_identifier" {
+  type        = string
+  description = <<-EOT
+    A unique identifier for the server to install RKE2 on.
+    This is used to align the resources in this module with your server lifecycle.
+    While the content of this value remains the same, the resources will not be recreated.
+    If this value is changed, the resources will be recreated.
+    This allows you to manage your server lifecycle separate from your RKE2 lifecycle.
+  EOT
+}

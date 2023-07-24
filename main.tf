@@ -14,6 +14,7 @@ locals {
     "rke2-install",
     "rke2-config.yaml",
   ])
+  server_identifier = var.server_identifier
 }
 
 module "download" {
@@ -43,4 +44,5 @@ module "install" {
   ssh_user       = local.ssh_user
   path           = local.file_path
   expected_files = local.expected_files
+  identifier     = local.server_identifier
 }

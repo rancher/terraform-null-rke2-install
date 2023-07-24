@@ -6,6 +6,7 @@ locals {
   arch        = var.arch
   files       = var.expected_files
   local_path  = var.path
+  identifier  = var.identifier
   remote_path = "/home/${local.ssh_user}/rke2_artifacts"
 }
 resource "local_sensitive_file" "install" {
@@ -30,7 +31,7 @@ resource "null_resource" "copy_to_remote" {
   }
   triggers = {
     files = md5(jsonencode(local_sensitive_file.install[*])),
-    ip    = local.ssh_ip, # assumes that if the IP changes, we are dealing with a new host
+    id    = local.identifier,
   }
 }
 resource "null_resource" "configure" {
@@ -56,7 +57,7 @@ resource "null_resource" "configure" {
   }
   triggers = {
     files = md5(jsonencode(local_sensitive_file.install[*])),
-    ip    = local.ssh_ip, # assumes that if the IP changes, we are dealing with a new host
+    id    = local.identifier,
   }
 }
 resource "null_resource" "install" {
@@ -86,7 +87,7 @@ resource "null_resource" "install" {
   }
   triggers = {
     files = md5(jsonencode(local_sensitive_file.install[*])),
-    ip    = local.ssh_ip, # assumes that if the IP changes, we are dealing with a new host
+    id    = local.identifier,
   }
 }
 resource "null_resource" "start" {
@@ -114,6 +115,6 @@ resource "null_resource" "start" {
   }
   triggers = {
     files = md5(jsonencode(local_sensitive_file.install[*])),
-    ip    = local.ssh_ip, # assumes that if the IP changes, we are dealing with a new host
+    id    = local.identifier,
   }
 }
