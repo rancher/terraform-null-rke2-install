@@ -2,6 +2,7 @@
 
 In this example, you have chosen to provide your own files rather than the module downloading them from GitHub.
 We make some assumptions in order to limit "works on my machine" issues.
+When running this example as a test I download the files and place them in a directory named "rke2" in the current directory.
 
 Assumptions:
 
