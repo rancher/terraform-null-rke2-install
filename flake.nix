@@ -32,25 +32,11 @@
       let pkgs = nixpkgs.legacyPackages.${system};
       in
       {
-        # ignore deprecated warning for devShell until we figure out how to fix
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             bashInteractive
-            curl
-            file
             git
-            unixtools.watch
-            jq
-            kubectl
-            kubernetes-helm
-            nettools
-            openssl
-            shellcheck
-            shfmt
-            sops
             terraform
-            wget
-            yq
           ];
           shellHook = ''
             source .envrc
