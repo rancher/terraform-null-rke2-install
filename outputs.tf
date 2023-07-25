@@ -4,3 +4,6 @@ output "downloaded_assets" {
 output "config" {
   value = (local.rke2_config == "" ? null : module.install.config)
 }
+output "expected_files" {
+  value = local.expected_files
+}

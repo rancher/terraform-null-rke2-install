@@ -48,6 +48,7 @@ module "TestBasic" {
   source            = "../../"
   ssh_ip            = module.aws_server.public_ip
   ssh_user          = local.username
-  rke2_config       = module.config.config
+  rke2_config       = module.config.yaml_config
   server_identifier = module.aws_server.id
+  release           = "v1.27.3+rke2r1"
 }

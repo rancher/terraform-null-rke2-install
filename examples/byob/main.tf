@@ -18,6 +18,7 @@ module "aws_access" {
   subnet_cidr         = "10.0.1.0/24"
   security_group_name = local.name
   security_group_type = "egress"
+  security_group_ip   = "1.1.1.1"
   ssh_key_name        = local.username
   public_ssh_key      = local.public_ssh_key
 }
@@ -35,20 +36,15 @@ module "aws_server" {
   server_security_group_name = local.name
 }
 
-module "config" {
-  source = "github.com/rancher/terraform-local-rke2-config"
-}
-
 module "TestByob" {
   depends_on = [
     module.aws_access,
     module.aws_server,
-    module.config,
   ]
   source            = "../../"
-  local_file_path   = "${path.module}/rke2"
+  local_file_path   = "${path.root}/rke2"
   ssh_ip            = module.aws_server.public_ip
   ssh_user          = local.username
-  rke2_config       = module.config.config
   server_identifier = module.aws_server.id
+  release           = "v1.27.3+rke2r1"
 }
