@@ -1,0 +1,36 @@
+name: 'Testing'
+
+on:
+  pull_request:
+    branches:
+    - main 
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.5.3
+        with_wrapper: false
+
+    - name: Terraform Init
+      run: cd examples/basic && terraform init
+      
+    - name: Terraform Plan
+      run: cd examples/basic && terraform init && terraform plan
+  
+  terratest:
+    name: 'Terratest'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Run Terratest
+      run: cd tests && go test -v -timeout=30m -parallel=10
