@@ -5,6 +5,10 @@ locals {
   public_ssh_key = "ssh-type your+public+ssh+key+here you@example.com"
 }
 
+# in this basic example, we are generating new VPC, subnet, security group, and ssh key pair objects in AWS
+## you probably want to select existing resources in your own environment
+## the aws_access module can accomplish this for you, just pass in the names of the resources you want to use
+## to be found, resources must be tagged with the key "Name" and the value you pass in
 module "aws_access" {
   source              = "github.com/rancher/terraform-aws-access"
   owner               = local.email
@@ -14,11 +18,12 @@ module "aws_access" {
   subnet_cidr         = "10.0.1.0/24"
   security_group_name = local.name
   security_group_type = "egress"
-  ssh_key_name        = local.email
+  ssh_key_name        = local.username
   public_ssh_key      = local.public_ssh_key
 }
 
 module "aws_server" {
+  depends_on                 = [module.aws_access]
   source                     = "github.com/rancher/terraform-aws-server"
   image                      = "sles-15"
   server_owner               = local.email
@@ -43,6 +48,7 @@ module "TestBasic" {
   source            = "../../"
   ssh_ip            = module.aws_server.public_ip
   ssh_user          = local.username
-  rke2_config       = module.config.config
+  rke2_config       = module.config.yaml_config
   server_identifier = module.aws_server.id
+  release           = "v1.27.3+rke2r1"
 }
