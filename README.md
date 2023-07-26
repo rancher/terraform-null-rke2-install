@@ -1,4 +1,4 @@
-# Terraform GitHub RKE2 Installer
+# Terraform RKE2 Install
 
 WARNING! this module is not ready for use
 
