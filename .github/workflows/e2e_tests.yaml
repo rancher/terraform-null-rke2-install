@@ -34,17 +34,10 @@ jobs:
         with_wrapper: false
 
     - name: Terraform Init
-<<<<<<< Updated upstream
-      run: cd examples/basic && terraform init
-      
-    - name: Terraform Plan
-      run: cd examples/basic && terraform init && terraform plan
-=======
       run: cd examples/basic && terraform init -upgrade
       
     - name: Terraform Plan
       run: cd examples/basic && terraform init -upgrade && terraform plan
->>>>>>> Stashed changes
   
   terratest:
     name: 'Terratest'
