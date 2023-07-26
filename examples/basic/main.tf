@@ -39,6 +39,7 @@ module "config" {
   source = "github.com/rancher/terraform-local-rke2-config"
 }
 
+# everything before this module is not necessary, you can generate the resources manually or using other modules
 module "TestBasic" {
   depends_on = [
     module.aws_access,
