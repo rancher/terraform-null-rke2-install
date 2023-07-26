@@ -24,16 +24,21 @@ resource "local_file" "download_dir" {
   directory_permission = "0755"
   file_permission      = "0644"
 }
-# see README.md for more information
-data "external" "download" {
+
+# requires curl to be installed in the environment running terraform
+resource "null_resource" "download" {
   depends_on = [
     data.github_release.selected,
     local_file.download_dir,
   ]
   for_each = toset(local.files)
-  program  = ["sh", "${path.module}/file.sh"] # WARNING: requires 'sh' and 'jq' to be installed on the local machine
-  query = {
-    file = "${path.root}/rke2/${each.key}",
-    url  = (each.key == "install.sh" ? local.install_url : local.assets[each.key]),
+  provisioner "local-exec" {
+    command = <<-EOT
+      curl -L -s -o ${abspath("${path.root}/rke2/${each.key}")} ${lookup(local.assets, each.key, local.install_url)}
+    EOT
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -f ${abspath("${path.root}/rke2/${each.key}")}"
   }
 }
