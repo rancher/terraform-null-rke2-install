@@ -20,7 +20,7 @@ jobs:
         with_wrapper: false
 
     - name: Init Basic
-      run: cd examples/basic && terraform init
+      run: cd examples/basic && terraform init -upgrade
 
     - name: Validate Basic
       run: cd examples/basic && terraform validate

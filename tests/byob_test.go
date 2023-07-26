@@ -13,6 +13,7 @@ func TestByob(t *testing.T) {
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: "../examples/byob",
+		Upgrade:      true,
 	})
 
 	defer terraform.Destroy(t, terraformOptions)
@@ -24,6 +25,7 @@ func TestByobConfigChange(t *testing.T) {
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: "../examples/byob",
+		Upgrade:      true,
 	})
 
 	defer terraform.Destroy(t, terraformOptions)

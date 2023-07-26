@@ -10,6 +10,7 @@ func TestBasic(t *testing.T) {
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: "../examples/basic",
+		Upgrade:      true,
 	})
 
 	defer terraform.Destroy(t, terraformOptions)
