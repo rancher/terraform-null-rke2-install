@@ -7,14 +7,20 @@ If the contents of your config change this module will attempt to install the ne
 
 ## Local File Path
 
-The `local_file_path` variable informs the module what to do.
+The `local_file_path` variable informs the module whether or not to download files from GitHub.
 
-- If the variable indicates a path on the local file system then the module will not attempt to download anything.
+- If the variable indicates a path on the local file system, then the module will not attempt to download anything.
 - If the value of the variable is "", then the module assumes you need it to download the files, and initiates the GitHub provider to do so.
-  - this means that only if you need to download the files will you need the GitHub token
+  - this means that you only need a GitHub token if you need to download the files
 
 This module does not attempt to alter the contents of files supplied in the `local_file_path` variable.
 It tracks the content of *only* the `rke2-config.yaml`, if supplied (it is optional).
+
+## Curl and Local Filesystem Write Access
+
+If you decide to let the module download files from GitHub, you need to have write permissions on the local filesystem, and `curl` installed on the machine running Terraform.
+You will also need to have a GitHub token, see [GitHub Access](#github-access) below.
+This module cleans up files it downloads on destroy.
 
 ## Release
 
