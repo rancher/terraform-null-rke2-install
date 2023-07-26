@@ -20,7 +20,11 @@ jobs:
         with_wrapper: false
 
     - name: Init Basic
+<<<<<<< Updated upstream
       run: cd examples/basic && terraform init
+=======
+      run: cd examples/basic && terraform init -upgrade
+>>>>>>> Stashed changes
 
     - name: Validate Basic
       run: cd examples/basic && terraform validate
