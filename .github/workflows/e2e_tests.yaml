@@ -34,7 +34,7 @@ jobs:
         with_wrapper: false
 
     - name: Decode Override
-      run: echo ${{ secrets.BASIC_OVERRIDE }} | base64 -d > examples/basic/override.tf
+      run: openssl enc -base64 -d <<< ${{ secrets.BASIC_OVERRIDE }} > ./examples/basic/override.tf
 
     - name: Terraform Init
       run: cd examples/basic && terraform init -upgrade
