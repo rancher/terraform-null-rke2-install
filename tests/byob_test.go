@@ -42,7 +42,7 @@ func TestByobConfigChange(t *testing.T) {
 	require.NoError(t, err8)
 }
 
-func Setup(t *testing.T) terraform.Options {
+func Setup(t *testing.T) {
 	// set up
 	version := "v1.27.3+rke2r1"
 	url := fmt.Sprintf("https://github.com/rancher/rke2/releases/download/%s", version)
