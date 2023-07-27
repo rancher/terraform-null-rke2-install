@@ -57,10 +57,10 @@ jobs:
         aws-region: ${{env.AWS_REGION}}
 
     - name: Decode Basic Override
-      run: echo ${{ secrets.BASIC_OVERRIDE }} | base64 -d > ./examples/basic/override.tf
+      run: openssl enc -base64 -d <<< ${{ secrets.BASIC_OVERRIDE }} > ./examples/basic/override.tf
 
     - name: Decode Byob Override
-      run: echo ${{ secrets.BYOB_OVERRIDE }} | base64 -d > ./examples/byob/override.tf
+      run: openssl enc -base64 -d <<< ${{ secrets.BYOB_OVERRIDE }} > ./examples/byob/override.tf
 
     - name: Run Terratest
       run: cd ./tests && go test -v -timeout=30m -parallel=10
