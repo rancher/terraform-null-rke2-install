@@ -10,57 +10,53 @@ permissions:
   contents: read
 
 env:
-  AWS_REGION: us-west-2
+  AWS_REGION: us-west-1
 
 jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
     steps:
+    - name: Print environment
+      run: |
+        echo "Job: ${{ env.GITHUB_JOB }}"
+        echo "Run ID: ${{ env.GITHUB_RUN_ID }}"
+        echo "Run Number: ${{ env.GITHUB_RUN_NUMBER }}"
+        echo "Run Attempt: ${{ env.GITHUB_RUN_ATTEMPT }}"
     - name: Checkout
       uses: actions/checkout@v2
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
-        role-session-name: ${{env.GITHUB_JOB}}-${{env.GITHUB_RUN_ID}}-${{env.GITHUB_RUN_NUMBER}}-${{env.GITHUB_RUN_ATTEMPT}}
-        aws-region: us-west-1
-      
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.5.3
-        with_wrapper: false
-
-    - name: Decode Override
-      run: base64 -d <<< "${{ secrets.BASIC_OVERRIDE }}" > ./examples/basic/override.tf
-
-    - name: Terraform Init
-      run: cd examples/basic && terraform init -upgrade
-      
-    - name: Terraform Plan
-      run: cd examples/basic && terraform init -upgrade && terraform plan
-  
-  terratest:
-    name: 'Terratest'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
         role-session-name: ${{env.GITHUB_JOB}}-${{env.GITHUB_RUN_ID}}-${{env.GITHUB_RUN_NUMBER}}-${{env.GITHUB_RUN_ATTEMPT}}
         aws-region: ${{env.AWS_REGION}}
-
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.5.3
+        with_wrapper: false
+    - name: Decode Override
+      run: base64 -d <<< "${{ secrets.BASIC_OVERRIDE }}" > ./examples/basic/override.tf
+    - name: Terraform Init
+      run: cd examples/basic && terraform init -upgrade
+    - name: Terraform Plan
+      run: cd examples/basic && terraform init -upgrade && terraform plan
+  terratest:
+    name: 'Terratest'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
+        role-session-name: ${{env.GITHUB_JOB}}-${{env.GITHUB_RUN_ID}}-${{env.GITHUB_RUN_NUMBER}}-${{env.GITHUB_RUN_ATTEMPT}}
+        aws-region: ${{env.AWS_REGION}}
     - name: Decode Basic Override
       run: base64 -d <<< "${{ secrets.BASIC_OVERRIDE }}" > ./examples/basic/override.tf
-
     - name: Decode Byob Override
       run: base64 -d <<< "${{ secrets.BYOB_OVERRIDE }}" > ./examples/byob/override.tf
-
     - name: Run Terratest
       run: cd ./tests && go test -v -timeout=30m -parallel=10
