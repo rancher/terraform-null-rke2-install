@@ -1,25 +1,19 @@
 locals {
-  email          = "you@example.com"
-  name           = "rke2-basic"
-  username       = "you"
-  public_ssh_key = "ssh-type your+public+ssh+key+here you@example.com"
+  email          = "terraform-ci@suse.com"
+  name           = "test-install"
+  username       = "terraform-ci"
+  public_ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4HmZ/KHZ/8KsvYlz6wqpoWoOaH1edHId2aK6niqKIw terraform-ci@suse.com"
 }
 
-# in this basic example, we are generating new VPC, subnet, security group, and ssh key pair objects in AWS
-## you probably want to select existing resources in your own environment
-## the aws_access module can accomplish this for you, just pass in the names of the resources you want to use
-## to be found, resources must be tagged with the key "Name" and the value you pass in
+# selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner
 module "aws_access" {
   source              = "github.com/rancher/terraform-aws-access"
   owner               = local.email
-  vpc_name            = local.name
-  vpc_cidr            = "10.0.0.0/16"
-  subnet_name         = local.name
-  subnet_cidr         = "10.0.1.0/24"
-  security_group_name = local.name
-  security_group_type = "egress"
+  vpc_name            = "default"
+  subnet_name         = "default"
+  security_group_name = local.username
+  security_group_type = "specific"
   ssh_key_name        = local.username
-  public_ssh_key      = local.public_ssh_key
 }
 
 module "aws_server" {
@@ -28,18 +22,18 @@ module "aws_server" {
   image                      = "sles-15"
   server_owner               = local.email
   server_name                = local.name
-  server_type                = "small"
+  server_type                = "medium"
   server_user                = local.username
   server_ssh_key             = local.public_ssh_key
-  server_subnet_name         = local.name
-  server_security_group_name = local.name
+  server_subnet_name         = "default"
+  server_security_group_name = module.aws_access.security_group.name
 }
 
 module "config" {
   source = "github.com/rancher/terraform-local-rke2-config"
 }
 
-# everything before this module is not necessary, you can generate the resources manually or using other modules
+# everything before this module is not necessary, you can generate the resources manually or using other methods
 module "TestBasic" {
   depends_on = [
     module.aws_access,

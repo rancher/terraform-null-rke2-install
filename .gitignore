@@ -9,3 +9,4 @@ rke2*
 *.gz
 examples/*/installer.sh
 examples/*/sha256sum.txt
+id_ed25519_*
