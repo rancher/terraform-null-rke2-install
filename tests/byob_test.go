@@ -11,6 +11,7 @@ import (
 )
 
 func TestByobConfigChange(t *testing.T) {
+	t.Parallel()
 	Setup(t)
 	defer Teardown(t)
 
