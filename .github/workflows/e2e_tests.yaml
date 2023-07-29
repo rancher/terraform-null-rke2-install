@@ -49,8 +49,10 @@ jobs:
     - name: Decode Key
       run: |
         base64 -d <<< "${{ secrets.KEY }}" > ./key
-        if ! ssh-add; then eval "$(ssh-agent)"; fi
         chmod 600 ./key
-        ssh-add ./key
     - name: Run Terratest
-      run: cd ./tests && go test -v -timeout=30m -parallel=10
+      run: |
+        if ! ssh-add; then eval "$(ssh-agent)"; fi;
+        ssh-add ./key &&
+        cd ./tests &&
+        go test -v -timeout=30m -parallel=10
