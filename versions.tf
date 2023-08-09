@@ -15,7 +15,3 @@ terraform {
     }
   }
 }
-provider "github" {
-  token    = ""
-  base_url = "https://localhost"
-}

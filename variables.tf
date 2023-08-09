@@ -44,9 +44,13 @@ variable "local_file_path" {
       "rke2.<system>-<arch>.tar.gz",
       "sha256sum-<arch>.txt",
       "install.sh",
-      "rke2-config.yaml",
     This is useful if the server that is running Terraform does not have access to GitHub.
     If local_file_path is set, downloads will not be attempted.
+    You may need to set a dummy provider config for the GitHub provider if you use this:
+    provider "github" {
+      token    = ""
+      base_url = "https://localhost"
+    }
   EOT
   default     = ""
 }
@@ -74,6 +78,7 @@ variable "rke2_config" {
     The content of the RKE2 `config.yaml` to use.
     If this is not set, the module looks in the 'local_file_path' directory for a file named 'rke2-config.yaml'.
     If that file does not exist or 'local_file_path' is not set, the module will use an empty configuration.
+    This is affected by the 'config_file_name' variable; you can supply json content instead of yaml.
   EOT
   default     = ""
 }
