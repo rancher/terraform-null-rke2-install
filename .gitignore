@@ -9,4 +9,5 @@ rke2*
 *.gz
 examples/*/installer.sh
 examples/*/sha256sum.txt
+examples/*/tmp
 id_ed25519_*

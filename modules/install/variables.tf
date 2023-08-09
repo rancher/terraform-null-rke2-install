@@ -35,15 +35,3 @@ variable "role" {
     May be 'server' or 'agent'.
   EOT 
 }
-variable "files" {
-  type        = list(string)
-  description = <<-EOT
-    A list of files that are expected to be in the path for the install.
-  EOT
-}
-variable "rke2_config" {
-  type        = string
-  description = <<-EOT
-    The content of the rke2-config variable or file.
-  EOT
-}
