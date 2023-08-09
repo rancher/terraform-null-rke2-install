@@ -6,8 +6,5 @@ terraform {
     local = {
       source = "hashicorp/local"
     }
-    external = {
-      source = "hashicorp/external"
-    }
   }
 }
