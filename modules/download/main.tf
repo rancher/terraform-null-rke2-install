@@ -37,8 +37,4 @@ resource "null_resource" "download" {
       curl -L -s -o ${abspath("${path.root}/rke2/${each.key}")} ${lookup(local.assets, each.key, local.install_url)}
     EOT
   }
-  provisioner "local-exec" {
-    when    = destroy
-    command = "rm -f ${abspath("${path.root}/rke2/${each.key}")}"
-  }
 }

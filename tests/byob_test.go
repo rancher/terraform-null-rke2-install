@@ -12,8 +12,8 @@ import (
 
 func TestByobConfigChange(t *testing.T) {
 	t.Parallel()
-	Setup(t)
-	defer Teardown(t)
+	byobSetup(t)
+	defer byobTeardown(t)
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: "../examples/byob",
@@ -32,7 +32,7 @@ func TestByobConfigChange(t *testing.T) {
 	terraform.Apply(t, terraformOptions)
 }
 
-func Setup(t *testing.T) {
+func byobSetup(t *testing.T) {
 	version := "v1.27.3+rke2r1"
 	url := fmt.Sprintf("https://github.com/rancher/rke2/releases/download/%s", version)
 
@@ -58,7 +58,7 @@ func Setup(t *testing.T) {
 	require.NoError(t, err7)
 }
 
-func Teardown(t *testing.T) {
+func byobTeardown(t *testing.T) {
 	err := os.RemoveAll("../examples/byob/.terraform")
 	require.NoError(t, err)
 	err1 := os.RemoveAll("../examples/byob/rke2")
