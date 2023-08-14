@@ -46,13 +46,5 @@ jobs:
         role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
         role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
         aws-region: ${{env.AWS_REGION}}
-    - name: Decode Key
-      run: |
-        base64 -d <<< "${{ secrets.KEY }}" > ./key
-        chmod 600 ./key
     - name: Run Terratest
-      run: |
-        if ! ssh-add; then eval "$(ssh-agent)"; fi;
-        ssh-add ./key &&
-        cd ./tests &&
-        go test -v -timeout=30m -parallel=10
+      run: cd ./tests && go test -v -timeout=40m -parallel=10
