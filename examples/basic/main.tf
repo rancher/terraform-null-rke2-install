@@ -2,7 +2,9 @@ locals {
   email          = "terraform-ci@suse.com"
   name           = "test-install"
   username       = "terraform-ci"
-  public_ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4HmZ/KHZ/8KsvYlz6wqpoWoOaH1edHId2aK6niqKIw terraform-ci@suse.com"
+  public_ssh_key = var.key      # I don't normally recommend using variables in root modules, but it allows tests to supply their own key
+  key_name       = var.key_name # A lot of troubleshooting during critical times can be saved by hard coding variables in root modules
+  # root modules should be secured properly (including the state), and should represent your running infrastructure
 }
 
 # selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner
@@ -13,7 +15,7 @@ module "aws_access" {
   subnet_name         = "default"
   security_group_name = local.username
   security_group_type = "specific"
-  ssh_key_name        = local.username
+  ssh_key_name        = local.key_name
 }
 
 module "aws_server" {
