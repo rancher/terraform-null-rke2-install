@@ -18,6 +18,10 @@ locals {
     "install.sh",
   ])
 }
+resource "random_string" "config_name" {
+  length  = 4
+  special = false
+}
 
 module "download" {
   # skip download if local_file_path is set
@@ -27,16 +31,13 @@ module "download" {
   files   = local.expected_files
 }
 
-# if a config content is provided (or changed), write it to a file
-# all *.yaml files in the file_path will be copied to the config directory and read alphabetically
 resource "null_resource" "write_config" {
-  count = (local.config_content != "" ? 1 : 0)
   triggers = {
     config_content = local.config_content,
   }
   provisioner "local-exec" {
     command = <<-EOT
-      echo "${local.config_content}" > "${local.file_path}/config.yaml"
+      echo "${local.config_content}" > "${local.file_path}/${random_string.config_name.result}.yaml"
     EOT
   }
 }
