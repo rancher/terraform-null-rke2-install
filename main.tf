@@ -40,6 +40,12 @@ resource "null_resource" "write_config" {
       echo "${local.config_content}" > "${local.file_path}/${random_string.config_name.result}.yaml"
     EOT
   }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      rm -f  "${local.file_path}/${random_string.config_name.result}.yaml"
+    EOT
+  }
 }
 
 module "install" {
