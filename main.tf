@@ -32,7 +32,7 @@ module "download" {
 }
 
 resource "null_resource" "write_config" {
-  for_each = ["${local.file_path}/${random_string.config_name.result}.yaml"]
+  for_each = toset(["${local.file_path}/${random_string.config_name.result}.yaml"])
   triggers = {
     config_content = local.config_content,
   }
