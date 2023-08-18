@@ -37,7 +37,11 @@ resource "null_resource" "write_config" {
   }
   provisioner "local-exec" {
     command = <<-EOT
-      echo "${local.config_content}" > ${each.key}
+      set -e
+      set -x
+      cat << 'EOF' > ${each.key}
+      ${local.config_content}
+      EOF
     EOT
   }
   provisioner "local-exec" {
