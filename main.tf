@@ -32,12 +32,19 @@ module "download" {
 }
 
 resource "null_resource" "write_config" {
+  for_each = toset(["${local.file_path}/${random_string.config_name.result}.yaml"])
   triggers = {
     config_content = local.config_content,
   }
   provisioner "local-exec" {
     command = <<-EOT
-      echo "${local.config_content}" > "${local.file_path}/${random_string.config_name.result}.yaml"
+      echo "${local.config_content}" > ${each.key}
+    EOT
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      rm -f  ${each.key}
     EOT
   }
 }
