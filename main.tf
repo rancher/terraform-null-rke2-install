@@ -18,10 +18,6 @@ locals {
     "install.sh",
   ])
 }
-resource "random_string" "config_name" {
-  length  = 4
-  special = false
-}
 
 module "download" {
   # skip download if local_file_path is set
@@ -32,7 +28,10 @@ module "download" {
 }
 
 resource "null_resource" "write_config" {
-  for_each = toset(["${local.file_path}/${random_string.config_name.result}.yaml"])
+  # the name needs to be something highly unlikely to be used by a user, so that we don't clobber any of their configs
+  # we also want the name to be easily recognizable for what it is (the initially generated config)
+  # we also want the name to have an index so that users can supply their own configs before or after this one (they are merged alphabetically)
+  for_each = toset(["${local.file_path}/50-initial_generate_config_puzzlingly.yaml"])
   triggers = {
     config_content = local.config_content,
   }
