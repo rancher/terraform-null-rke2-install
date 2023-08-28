@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/go-github/v53/github"
+	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/go-getter"
 	"github.com/stretchr/testify/require"
@@ -29,8 +30,12 @@ func TestByobConfigChange(t *testing.T) {
 	terraformVars := map[string]interface{}{
 		"release": version,
 	}
-	terraformOptions, keyPair, sshAgent := setup(t, directory, region, owner, terraformVars)
-	defer teardown(t, directory, keyPair, sshAgent)
+	terraformOptions, keyPair := setup(t, directory, region, owner, terraformVars)
+
+	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
+	defer sshAgent.Stop()
+	terraformOptions.SshAgent = sshAgent
+	defer teardown(t, directory, keyPair)
 
 	url := fmt.Sprintf("https://github.com/rancher/rke2/releases/download/%s", version)
 
