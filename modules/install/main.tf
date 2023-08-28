@@ -24,14 +24,14 @@ locals {
 resource "local_file" "files_source" {
   for_each = fileset(local.local_path, "*")
   source   = "${local.local_path}/${each.key}"
-  filename = "${path.root}/tmp/${each.key}"
+  filename = "${abspath(path.root)}/tmp/${each.key}"
 }
 
 # this is only for tracking changes to files that already exist
 resource "local_file" "files_md5" {
   for_each = fileset(local.local_path, "*")
   content  = filemd5("${local.local_path}/${each.key}")
-  filename = "${path.root}/tmp/${each.key}.md5"
+  filename = "${abspath(path.root)}/tmp/${each.key}.md5"
 }
 
 # copy all files and folders in the local_path to the remote_path directory

@@ -37,7 +37,7 @@ module "TestByob" {
     module.aws_server,
   ]
   source            = "../../"
-  local_file_path   = "${path.root}/rke2"
+  local_file_path   = "${abspath(path.root)}/rke2"
   ssh_ip            = module.aws_server.public_ip
   ssh_user          = local.username
   server_identifier = module.aws_server.id
