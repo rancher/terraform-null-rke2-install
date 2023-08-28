@@ -15,7 +15,7 @@ data "github_release" "selected" {
 # create a directory to download the files to
 # dependency on this resouce forces the external data resource to run at apply time
 resource "local_file" "download_dir" {
-  filename             = "${path.root}/rke2/README.md"
+  filename             = "${abspath(path.root)}/rke2/README.md"
   content              = <<-EOT
     # RKE2 Downloads
     This directory is used to download the RKE2 installer and images.
