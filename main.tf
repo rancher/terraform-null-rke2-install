@@ -7,7 +7,7 @@ locals {
   ssh_user          = var.ssh_user
   server_identifier = var.server_identifier
   local_file_path   = var.local_file_path
-  file_path         = (local.local_file_path == "" ? "${path.root}/rke2" : local.local_file_path)
+  file_path         = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
   config_content    = var.rke2_config
 
   # if these files don't exist in the file_path, the install will fail
