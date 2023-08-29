@@ -12,3 +12,10 @@ output "expected_files" {
     This is static, and is handy to use if you are generating a local file copy.
   EOT
 }
+output "kubeconfig" {
+  value       = module.install.kubeconfig
+  description = <<-EOT
+    The contents of the kubeconfig file.
+  EOT
+  sensitive   = true
+}

@@ -28,6 +28,8 @@ func teardown(t *testing.T, directory string, keyPair *aws.Ec2Keypair) {
 	require.NoError(t, err5)
 	err6 := os.RemoveAll(fmt.Sprintf("../examples/%s/terraform.tfstate.backup", directory))
 	require.NoError(t, err6)
+	err7 := os.RemoveAll(fmt.Sprintf("../examples/%s/kubeconfig.yaml", directory))
+	require.NoError(t, err7)
 
 	aws.DeleteEC2KeyPair(t, keyPair)
 }
