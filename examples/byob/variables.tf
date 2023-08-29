@@ -6,6 +6,7 @@ variable "key_name" {
   type    = string
   default = "terraform-ci"
 }
-variable "release" {
-  type = string
+variable "rke2_version" {
+  type    = string
+  default = "v1.27.4+rke2r1"
 }

@@ -12,7 +12,10 @@ func TestBasic(t *testing.T) {
 	directory := "basic"
 	region := "us-west-1"
 	owner := "terraform-ci@suse.com"
-	terraformVars := map[string]interface{}{}
+	release := getLatestRelease(t, "rancher", "rke2")
+	terraformVars := map[string]interface{}{
+		"rke2_version": release,
+	}
 	terraformOptions, keyPair := setup(t, directory, region, owner, terraformVars)
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)

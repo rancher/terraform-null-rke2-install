@@ -1,12 +1,10 @@
 package test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/google/go-github/v53/github"
 	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/go-getter"
@@ -22,13 +20,9 @@ func TestByobConfigChange(t *testing.T) {
 	err1 := os.Mkdir(download_path, 0755)
 	require.NoError(t, err1)
 
-	ghClient := github.NewClient(nil)
-	release, _, err2 := ghClient.Repositories.GetLatestRelease(context.Background(), "rancher", "rke2")
-	require.NoError(t, err2)
-	version := *release.TagName
-
+	release := getLatestRelease(t, "rancher", "rke2")
 	terraformVars := map[string]interface{}{
-		"release": version,
+		"rke2_version": release,
 	}
 	terraformOptions, keyPair := setup(t, directory, region, owner, terraformVars)
 
@@ -37,7 +31,7 @@ func TestByobConfigChange(t *testing.T) {
 	terraformOptions.SshAgent = sshAgent
 	defer teardown(t, directory, keyPair)
 
-	url := fmt.Sprintf("https://github.com/rancher/rke2/releases/download/%s", version)
+	url := fmt.Sprintf("https://github.com/rancher/rke2/releases/download/%s", release)
 
 	err3 := os.WriteFile(fmt.Sprintf("%s/rke2-config.yaml", download_path), []byte(""), 0600)
 	require.NoError(t, err3)
