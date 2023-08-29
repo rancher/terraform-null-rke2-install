@@ -1,6 +1,6 @@
 locals {
   email          = "terraform-ci@suse.com"
-  name           = "terraform-rke2-install"
+  name           = "tf-rke2-install-byob"
   rke2_version   = var.rke2_version # I want ci to be able to get the latest version of rke2 to test
   public_ssh_key = var.key          # I don't normally recommend using variables in root modules, but it allows tests to supply their own key
   key_name       = var.key_name     # A lot of troubleshooting during critical times can be saved by hard coding variables in root modules
