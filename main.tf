@@ -31,7 +31,8 @@ resource "null_resource" "write_config" {
   # the name needs to be something highly unlikely to be used by a user, so that we don't clobber any of their configs
   # we also want the name to be easily recognizable for what it is (the initially generated config)
   # we also want the name to have an index so that users can supply their own configs before or after this one (they are merged alphabetically)
-  for_each = toset(["${local.file_path}/50-initial_generate_config_puzzlingly.yaml"])
+  # the name should use dashes instead of underscores, as a matter of convention (marginally helps sorting)
+  for_each = toset(["${local.file_path}/50-initial-generated-config.yaml"])
   triggers = {
     config_content = local.config_content,
   }
@@ -53,7 +54,10 @@ resource "null_resource" "write_config" {
 }
 
 module "install" {
-  depends_on = [module.download]
+  depends_on = [
+    module.download,
+    null_resource.write_config,
+  ]
   source     = "./modules/install"
   identifier = local.server_identifier
   release    = local.release
