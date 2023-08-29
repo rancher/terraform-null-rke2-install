@@ -14,24 +14,22 @@ locals {
 # we do need to know when the files change so we can run the install script and restart the service
 ## so we use a local_file data source to track tmp files that are created from the local_path
 
-# need a resource for tracking files that don't exist until apply time
-# data "local_file" "files" {
-#   for_each = fileset(local.local_path, "**") #{ for f in fileset(local.local_path, "**") : f => sha256("${local.local_path}/${f}") }
-#   filename = "${local.local_path}/${each.key}"
-# }
-
 # this should track files that don't exist until apply time
 resource "local_file" "files_source" {
-  for_each = fileset(local.local_path, "*")
-  source   = "${local.local_path}/${each.key}"
-  filename = "${abspath(path.root)}/tmp/${each.key}"
+  for_each             = fileset(local.local_path, "*")
+  source               = "${local.local_path}/${each.key}"
+  filename             = "${abspath(path.root)}/tmp/${each.key}"
+  file_permission      = 0755
+  directory_permission = 0755
 }
 
 # this is only for tracking changes to files that already exist
 resource "local_file" "files_md5" {
-  for_each = fileset(local.local_path, "*")
-  content  = filemd5("${local.local_path}/${each.key}")
-  filename = "${abspath(path.root)}/tmp/${each.key}.md5"
+  for_each             = fileset(local.local_path, "*")
+  content              = filemd5("${local.local_path}/${each.key}")
+  filename             = "${abspath(path.root)}/tmp/${each.key}.md5"
+  file_permission      = 0755
+  directory_permission = 0755
 }
 
 # copy all files and folders in the local_path to the remote_path directory
@@ -170,4 +168,56 @@ resource "null_resource" "start" {
     EOT
     ]
   }
+}
+resource "null_resource" "get_kubeconfig" {
+  depends_on = [
+    local_file.files_md5,
+    local_file.files_source,
+    null_resource.copy_to_remote,
+    null_resource.configure,
+    null_resource.install,
+    null_resource.start,
+  ]
+  triggers = {
+    files_md5 = jsonencode(local_file.files_md5.*),
+    files_src = jsonencode(local_file.files_source.*),
+    release   = local.release,
+    id        = local.identifier,
+  }
+  connection {
+    type        = "ssh"
+    user        = local.ssh_user
+    script_path = "/home/${local.ssh_user}/get_kubeconfig_terraform"
+    agent       = true
+    host        = local.ssh_ip
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      set -x
+      set -e
+      sudo cp /etc/rancher/rke2/rke2.yaml /home/${local.ssh_user}/kubeconfig.yaml
+      sudo chown ${local.ssh_user} /home/${local.ssh_user}/kubeconfig.yaml
+    EOT 
+    ]
+  }
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -x
+      set -e
+      scp ${local.ssh_user}@${local.ssh_ip}:/home/${local.ssh_user}/kubeconfig.yaml ${abspath(path.root)}/kubeconfig.yaml
+      sed -i "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig.yaml" || sed -i '' "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig.yaml"
+    EOT
+  }
+}
+data "local_file" "kubeconfig" {
+  depends_on = [
+    local_file.files_md5,
+    local_file.files_source,
+    null_resource.copy_to_remote,
+    null_resource.configure,
+    null_resource.install,
+    null_resource.start,
+    null_resource.get_kubeconfig,
+  ]
+  filename = "${abspath(path.root)}/kubeconfig.yaml"
 }
