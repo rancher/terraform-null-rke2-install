@@ -1,12 +1,14 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	a "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/google/go-github/v53/github"
 	aws "github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -73,4 +75,12 @@ func setup(t *testing.T, directory string, region string, owner string, terrafor
 		RetryableTerraformErrors: retryableTerraformErrors,
 	})
 	return terraformOptions, keyPair
+}
+
+func getLatestRelease(t *testing.T, owner string, repo string) string {
+	ghClient := github.NewClient(nil)
+	release, _, err := ghClient.Repositories.GetLatestRelease(context.Background(), owner, repo)
+	require.NoError(t, err)
+	version := *release.TagName
+	return version
 }
