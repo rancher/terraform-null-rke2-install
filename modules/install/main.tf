@@ -204,7 +204,7 @@ resource "null_resource" "get_kubeconfig" {
     command = <<-EOT
       set -x
       set -e
-      scp ${local.ssh_user}@${local.ssh_ip}:/home/${local.ssh_user}/kubeconfig.yaml ${abspath(path.root)}/kubeconfig.yaml
+      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${local.ssh_user}@${local.ssh_ip}:/home/${local.ssh_user}/kubeconfig.yaml ${abspath(path.root)}/kubeconfig.yaml
       sed -i "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig.yaml" || sed -i '' "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig.yaml"
     EOT
   }
