@@ -10,3 +10,10 @@ variable "rke2_version" {
   type    = string
   default = "v1.27.4+rke2r1"
 }
+variable "identifier" {
+  type        = string
+  description = <<-EOT
+    A unique identifier for the test, this is used to ensure that test objects do not collide.
+    Must be less than 10 characters, and only contain lowercase letters and numbers.
+  EOT
+}
