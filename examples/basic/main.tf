@@ -1,7 +1,8 @@
 locals {
   email          = "terraform-ci@suse.com"
-  name           = "tf-rke2-install-basic"
-  username       = "terraform-ci"
+  identifier     = var.identifier
+  name           = "tf-rke2-install-basic-${local.identifier}"
+  username       = "tf-${local.identifier}"
   rke2_version   = var.rke2_version # I want ci to be able to get the latest version of rke2 to test
   public_ssh_key = var.key          # I don't normally recommend using variables in root modules, but it allows tests to supply their own key
   key_name       = var.key_name     # A lot of troubleshooting during critical times can be saved by hard coding variables in root modules
@@ -35,7 +36,14 @@ module "aws_server" {
 }
 
 module "config" {
-  source = "github.com/rancher/terraform-local-rke2-config"
+  source  = "rancher/rke2-config/local"
+  version = "v0.0.5"
+}
+
+# the default location for the files will be `./rke2`
+module "download" {
+  source  = "rancher/rke2-download/github"
+  version = "v0.0.1"
 }
 
 # everything before this module is not necessary, you can generate the resources manually or using other methods
@@ -44,11 +52,13 @@ module "TestBasic" {
     module.aws_access,
     module.aws_server,
     module.config,
+    module.download,
   ]
-  source            = "../../"
-  ssh_ip            = module.aws_server.public_ip
-  ssh_user          = local.username
-  rke2_config       = module.config.yaml_config
-  server_identifier = module.aws_server.id
-  release           = local.rke2_version
+  source          = "../../"
+  ssh_ip          = module.aws_server.public_ip
+  ssh_user        = local.username
+  rke2_config     = module.config.yaml_config
+  identifier      = module.aws_server.id
+  release         = local.rke2_version
+  local_file_path = module.download.path
 }

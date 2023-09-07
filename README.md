@@ -1,26 +1,9 @@
 # Terraform RKE2 Install
 
-WARNING! this module is not ready for use
+WARNING! this module is experimental
 
-This module installs RKE2 from local files and optionally will download the required files from GitHub.
-If the contents of your config change this module will attempt to install the new config and restart the service.
-
-## Local File Path
-
-The `local_file_path` variable informs the module whether or not to download files from GitHub.
-
-- If the variable indicates a path on the local file system, then the module will not attempt to download anything.
-- If the value of the variable is "", then the module assumes you need it to download the files, and initiates the GitHub provider to do so.
-  - this means that you only need a GitHub token if you need to download the files
-
-This module does not attempt to alter the contents of files supplied in the `local_file_path` variable.
-It tracks the content of *only* the `rke2-config.yaml`, if supplied (it is optional).
-
-## Curl and Local Filesystem Write Access
-
-If you decide to let the module download files from GitHub, you need to have write permissions on the local filesystem, and `curl` installed on the machine running Terraform.
-You will also need to have a GitHub token, see [GitHub Access](#github-access) below.
-This module cleans up files it downloads on destroy.
+This module installs RKE2 from files on the local workstation or on a remote server.
+If the contents of your config change, this module will attempt to install the new config and restart the service.
 
 ## Release
 
@@ -37,13 +20,6 @@ This allows you to manage your config iteratively and separately from this modul
 You may also provide an `rke2-config.yaml` in the local directory specified in `local_file_path` variable.
 If the contents of this file change, then this module will detect that, copy the new config to the remote server, and restart the process.
 This allows you to manage your config iteratively and separately from this module.
-
-## GitHub Access
-
-The GitHub provider [provides multiple ways to authenticate](https://registry.terraform.io/providers/integrations/github/latest/docs#authentication) with GitHub.
-For simplicity we use the `GITHUB_TOKEN` environment variable when testing.
-The GitHub provider is not used when `local_file_path` is specified!
-This means that you don't need to provide any information to that provider and it will not attempt to make connections.
 
 ## Examples
 

@@ -55,6 +55,7 @@ func setup(t *testing.T, directory string, region string, owner string, terrafor
 
 	terraformVars["key_name"] = keyPairName
 	terraformVars["key"] = keyPair.KeyPair.PublicKey
+	terraformVars["identifier"] = uniqueID
 
 	retryableTerraformErrors := map[string]string{
 		// The reason is unknown, but eventually these succeed after a few retries.
