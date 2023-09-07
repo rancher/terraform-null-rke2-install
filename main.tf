@@ -70,8 +70,8 @@ resource "null_resource" "copy_to_remote" {
     local_file.files_source,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5.*),
-    files_src = jsonencode(local_file.files_source.*),
+    files_md5 = jsonencode(local_file.files_md5[*]),
+    files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
   }
@@ -102,8 +102,8 @@ resource "null_resource" "configure" {
     null_resource.copy_to_remote,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5.*),
-    files_src = jsonencode(local_file.files_source.*),
+    files_md5 = jsonencode(local_file.files_md5[*]),
+    files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
   }
@@ -135,8 +135,8 @@ resource "null_resource" "install" {
     null_resource.configure,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5.*),
-    files_src = jsonencode(local_file.files_source.*),
+    files_md5 = jsonencode(local_file.files_md5[*]),
+    files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
   }
@@ -173,8 +173,8 @@ resource "null_resource" "start" {
     null_resource.install,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5.*),
-    files_src = jsonencode(local_file.files_source.*),
+    files_md5 = jsonencode(local_file.files_md5[*]),
+    files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
   }
@@ -209,8 +209,8 @@ resource "null_resource" "get_kubeconfig" {
     null_resource.start,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5.*),
-    files_src = jsonencode(local_file.files_source.*),
+    files_md5 = jsonencode(local_file.files_md5[*]),
+    files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
   }
