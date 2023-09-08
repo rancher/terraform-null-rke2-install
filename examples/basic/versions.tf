@@ -1,10 +1,6 @@
 terraform {
   required_version = ">= 1.2.0, < 1.6"
   required_providers {
-    github = {
-      source  = "integrations/github"
-      version = ">= 5.32"
-    }
     local = {
       source  = "hashicorp/local"
       version = ">= 2.4"
@@ -12,6 +8,12 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = ">= 3.5.1"
+    }
+    # NOTE: this is only required for the examples
+    # this is used by the rke2_download module
+    github = {
+      source  = "integrations/github"
+      version = ">= 5.32"
     }
     # NOTE: this is only required for the examples
     # this is used by the aws_access and aws_server modules
