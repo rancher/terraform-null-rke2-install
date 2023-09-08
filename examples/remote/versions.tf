@@ -13,6 +13,8 @@ terraform {
       source  = "hashicorp/random"
       version = ">= 3.5.1"
     }
+    # NOTE: this is only required for the examples
+    # this is used by the rke2_download module
     github = {
       source  = "integrations/github"
       version = ">= 5.32"
