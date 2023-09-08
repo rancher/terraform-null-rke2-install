@@ -24,6 +24,7 @@ variable "local_file_path" {
     If this variable is empty, the module assumes that the files are already on the remote server.
     This module can't track changes to files on the remote server, so if you change those files you will need to alter the "identifier" or "release" variable to trigger an update.
     If this variable is set, the module will copy the files in the given directory to the remote server.
+    Since this variable determines what resources are deployed, you will need to set it manually in the root module, it can't come from a module output.
     Files must match expected file names for the installer to succeed:
       "rke2-images.<system>-<arch>.tar.gz",
       "rke2.<system>-<arch>.tar.gz",
