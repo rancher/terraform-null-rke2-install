@@ -4,7 +4,7 @@ locals {
   ssh_ip          = var.ssh_ip
   ssh_user        = var.ssh_user
   identifier      = var.identifier
-  local_file_path = var.local_file_path
+  local_file_path = var.local_file_path # since logic is determined by this variable, it will not be able to be set by a module
   local_path      = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
   remote_path     = (var.remote_file_path == "" ? "/home/${local.ssh_user}/rke2_artifacts" : var.remote_file_path)
   config_content  = var.rke2_config
@@ -15,8 +15,7 @@ resource "null_resource" "write_config" {
   # we also want the name to be easily recognizable for what it is (the initially generated config)
   # we also want the name to have an index so that users can supply their own configs before or after this one (they are merged alphabetically)
   # the name should use dashes instead of underscores, as a matter of convention (marginally helps sorting)
-  # we don't want to do any of this if the user is not supplying a config and a local path to put it
-  for_each = ((local.local_file_path == "" || local.config_content == "") ? [] : toset(["${local.local_path}/50-initial-generated-config.yaml"]))
+  for_each = (local.local_file_path == "" ? [] : toset(["${local.local_path}/50-initial-generated-config.yaml"]))
   triggers = {
     config_content = local.config_content,
   }
