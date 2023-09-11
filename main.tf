@@ -117,6 +117,7 @@ resource "null_resource" "configure" {
     inline = [<<-EOT
       set -x
       set -e
+      install -d ${local.remote_path}
       cd ${local.remote_path}
       sudo install -d /etc/rancher/rke2/config.yaml.d
       sudo find ./ -name '*.yaml' -exec cp -prv '{}' '/etc/rancher/rke2/config.yaml.d/' ';'
