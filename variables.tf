@@ -85,3 +85,14 @@ variable "identifier" {
     This allows you to manage your server lifecycle separate from your RKE2 lifecycle.
   EOT
 }
+variable "retrieve_kubeconfig" {
+  type        = bool
+  description = <<-EOT
+    Whether or not to retrieve the kubeconfig from the server.
+    If this is set to true, the module will retrieve the kubeconfig from the server and write it to a file.
+    The file will be named "kubeconfig-<identifier>.yaml" and will be written to the root directory.
+    The module replaces the default IP (127.0.0.1) with the IP address of the server (ssh_ip).
+    If this is set to false, the module will not retrieve the kubeconfig from the server.
+  EOT
+  default     = false
+}
