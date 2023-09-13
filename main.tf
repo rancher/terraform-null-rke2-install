@@ -242,6 +242,7 @@ resource "null_resource" "get_kubeconfig" {
   }
 }
 data "local_file" "kubeconfig" {
+  count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
     local_file.files_md5,
     local_file.files_source,
