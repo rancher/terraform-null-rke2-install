@@ -1,13 +1,14 @@
 locals {
-  release         = var.release
-  role            = var.role
-  ssh_ip          = var.ssh_ip
-  ssh_user        = var.ssh_user
-  identifier      = var.identifier
-  local_file_path = var.local_file_path # since logic is determined by this variable, it will not be able to be set by a module
-  local_path      = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
-  remote_path     = (var.remote_file_path == "" ? "/home/${local.ssh_user}/rke2_artifacts" : var.remote_file_path)
-  config_content  = var.rke2_config
+  release             = var.release
+  role                = var.role
+  ssh_ip              = var.ssh_ip
+  ssh_user            = var.ssh_user
+  identifier          = var.identifier
+  local_file_path     = var.local_file_path # since logic is determined by this variable, it will not be able to be set by a module
+  local_path          = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
+  remote_path         = (var.remote_file_path == "" ? "/home/${local.ssh_user}/rke2_artifacts" : var.remote_file_path)
+  config_content      = var.rke2_config
+  retrieve_kubeconfig = var.retrieve_kubeconfig
 }
 
 resource "null_resource" "write_config" {
@@ -200,6 +201,7 @@ resource "null_resource" "start" {
   }
 }
 resource "null_resource" "get_kubeconfig" {
+  count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
     local_file.files_md5,
     local_file.files_source,
@@ -234,8 +236,8 @@ resource "null_resource" "get_kubeconfig" {
     command = <<-EOT
       set -x
       set -e
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${local.ssh_user}@${local.ssh_ip}:/home/${local.ssh_user}/kubeconfig.yaml ${abspath(path.root)}/kubeconfig.yaml
-      sed -i "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig.yaml" || sed -i '' "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig.yaml"
+      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${local.ssh_user}@${local.ssh_ip}:/home/${local.ssh_user}/kubeconfig.yaml ${abspath(path.root)}/kubeconfig-${local.identifier}.yaml
+      sed -i "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig-${local.identifier}.yaml" || sed -i '' "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig-${local.identifier}.yaml"
     EOT
   }
 }
@@ -249,5 +251,5 @@ data "local_file" "kubeconfig" {
     null_resource.start,
     null_resource.get_kubeconfig,
   ]
-  filename = "${abspath(path.root)}/kubeconfig.yaml"
+  filename = "${abspath(path.root)}/kubeconfig-${local.identifier}.yaml"
 }
