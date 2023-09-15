@@ -2,7 +2,7 @@
 
 This is a basic install using the "rpm" install method.
 
-The "tar" method is the default because it is more generic and contained; the tar method works on more OS and does not require public internet access.
+Tar is the default deployment method because it is portable across many operating systems, versatile, and independent of the internet.
 
 In this example we are using the "rpm" install method, which involves allowing the server to access the public internet.
 This installation method only works on RHEL based OS.
