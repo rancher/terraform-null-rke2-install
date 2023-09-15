@@ -47,6 +47,7 @@ resource "null_resource" "write_config" {
 
 # this should track files that don't exist until apply time
 resource "local_file" "files_source" {
+  depends_on           = [null_resource.write_config]
   for_each             = (local.local_file_path == "" ? [] : fileset(local.local_path, "*"))
   source               = "${local.local_path}/${each.key}"
   filename             = "${abspath(path.root)}/tmp/${each.key}"
@@ -56,6 +57,10 @@ resource "local_file" "files_source" {
 
 # this is only for tracking changes to files that already exist
 resource "local_file" "files_md5" {
+  depends_on = [
+    null_resource.write_config,
+    local_file.files_source,
+  ]
   for_each             = (local.local_file_path == "" ? [] : fileset(local.local_path, "*"))
   content              = filemd5("${local.local_path}/${each.key}")
   filename             = "${abspath(path.root)}/tmp/${each.key}.md5"
@@ -67,6 +72,7 @@ resource "local_file" "files_md5" {
 resource "null_resource" "copy_to_remote" {
   count = (local.local_file_path == "" ? 0 : 1)
   depends_on = [
+    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
   ]
@@ -98,6 +104,7 @@ resource "null_resource" "copy_to_remote" {
 }
 resource "null_resource" "configure" {
   depends_on = [
+    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -131,6 +138,7 @@ resource "null_resource" "configure" {
 # run the install script, which may upgrade rke2 if it is already installed
 resource "null_resource" "install" {
   depends_on = [
+    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -168,6 +176,7 @@ resource "null_resource" "install" {
 # start or restart rke2 service
 resource "null_resource" "start" {
   depends_on = [
+    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -204,6 +213,7 @@ resource "null_resource" "start" {
 resource "null_resource" "get_kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
+    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -247,6 +257,7 @@ resource "null_resource" "get_kubeconfig" {
 data "local_file" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
+    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
