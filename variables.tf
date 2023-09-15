@@ -96,3 +96,14 @@ variable "retrieve_kubeconfig" {
   EOT
   default     = false
 }
+variable "install_method" {
+  type        = string
+  description = <<-EOT
+    The install method to set when running the install script.
+    This should be one of "tar" or "rpm".
+    The default is tar, which assumes you are downloading the files and want to copy them over to the remote server.
+    This is the most contained method, and does not require public internet access on the remote server.
+    If you are using the rpm install method, your server will need to be able to access the internet to download the rpms.
+  EOT
+  default     = "tar"
+}

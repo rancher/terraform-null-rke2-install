@@ -9,6 +9,7 @@ locals {
   remote_path         = (var.remote_file_path == "" ? "/home/${local.ssh_user}/rke2_artifacts" : var.remote_file_path)
   config_content      = var.rke2_config
   retrieve_kubeconfig = var.retrieve_kubeconfig
+  install_method      = var.install_method
 }
 
 resource "null_resource" "write_config" {
@@ -157,8 +158,8 @@ resource "null_resource" "install" {
       fi
       sudo chmod +x ${local.remote_path}/install.sh
       sudo INSTALL_RKE2_CHANNEL=${local.release} \
-        INSTALL_RKE2_METHOD="tar" \
-        INSTALL_RKE2_ARTIFACT_PATH="${local.remote_path}" \
+        INSTALL_RKE2_METHOD="${local.install_method}" \
+        ${local.install_method == "tar" ? "INSTALL_RKE2_ARTIFACT_PATH=${local.remote_path}" : ""} \
         ${local.remote_path}/install.sh
     EOT
     ]
@@ -236,8 +237,10 @@ resource "null_resource" "get_kubeconfig" {
     command = <<-EOT
       set -x
       set -e
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${local.ssh_user}@${local.ssh_ip}:/home/${local.ssh_user}/kubeconfig.yaml ${abspath(path.root)}/kubeconfig-${local.identifier}.yaml
-      sed -i "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig-${local.identifier}.yaml" || sed -i '' "s/127.0.0.1/${local.ssh_ip}/g" "${abspath(path.root)}/kubeconfig-${local.identifier}.yaml"
+      export FILE="${abspath(path.root)}/kubeconfig-${local.identifier}.yaml"
+      export REMOTE_PATH="/home/${local.ssh_user}/kubeconfig.yaml"
+      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${local.ssh_user}@${local.ssh_ip}:$REMOTE_PATH $FILE
+      sed -i "s/127.0.0.1/${local.ssh_ip}/g" "$FILE" || sed -i '' "s/127.0.0.1/${local.ssh_ip}/g" "$FILE"
     EOT
   }
 }
