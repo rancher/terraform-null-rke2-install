@@ -25,16 +25,14 @@ resource "null_resource" "write_config" {
     command = <<-EOT
       set -e
       set -x
-      install -d ${local.local_path}
-      cat << 'EOF' > ${each.key}
-      ${local.config_content}
-      EOF
+      chmod +x "${abspath(path.module)}/write_config.sh"
+      "${abspath(path.module)}/write_config.sh" "${local.local_path}" "${each.key}" "${local.config_content}"
     EOT
   }
   provisioner "local-exec" {
     when    = destroy
     command = <<-EOT
-      rm -f  ${each.key}
+      rm -f "${each.key}"
     EOT
   }
 }
@@ -91,7 +89,7 @@ resource "null_resource" "copy_to_remote" {
     inline = [<<-EOT
       set -x
       set -e
-      ls -lah ${local.remote_path}
+      ls -lah "${local.remote_path}"
     EOT
     ]
   }
@@ -115,15 +113,16 @@ resource "null_resource" "configure" {
     agent       = true
     host        = local.ssh_ip
   }
+  provisioner "file" {
+    source      = "${abspath(path.module)}/configure.sh"
+    destination = "/home/${local.ssh_user}/configure.sh"
+  }
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -x
       set -e
-      install -d ${local.remote_path}
-      cd ${local.remote_path}
-      sudo install -d /etc/rancher/rke2/config.yaml.d
-      sudo find ./ -name '*.yaml' -exec cp -prv '{}' '/etc/rancher/rke2/config.yaml.d/' ';'
-      sudo ls -lah /etc/rancher/rke2/config.yaml.d
+      sudo chmod +x /home/${local.ssh_user}/configure.sh
+      sudo /home/${local.ssh_user}/configure.sh "${local.remote_path}"
     EOT
     ]
   }
@@ -149,18 +148,16 @@ resource "null_resource" "install" {
     agent       = true
     host        = local.ssh_ip
   }
+  provisioner "file" {
+    source      = "${abspath(path.module)}/install.sh"
+    destination = "/home/${local.ssh_user}/install.sh"
+  }
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -x
       set -e
-      if [ "$(sudo systemctl is-active rke2-${local.role}.service)" = "active" ]; then
-        sudo systemctl stop rke2-${local.role}.service
-      fi
-      sudo chmod +x ${local.remote_path}/install.sh
-      sudo INSTALL_RKE2_CHANNEL=${local.release} \
-        INSTALL_RKE2_METHOD="${local.install_method}" \
-        ${local.install_method == "tar" ? "INSTALL_RKE2_ARTIFACT_PATH=${local.remote_path}" : ""} \
-        ${local.remote_path}/install.sh
+      sudo chmod +x "/home/${local.ssh_user}/install.sh"
+      sudo /home/${local.ssh_user}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}"
     EOT
     ]
   }
@@ -187,16 +184,16 @@ resource "null_resource" "start" {
     agent       = true
     host        = local.ssh_ip
   }
+  provisioner "file" {
+    source      = "${abspath(path.module)}/start.sh"
+    destination = "/home/${local.ssh_user}/start.sh"
+  }
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -x
       set -e
-      if [ "$(sudo systemctl is-active rke2-${local.role}.service)" = "active" ]; then
-        sudo systemctl stop rke2-${local.role}.service
-      fi
-      sudo systemctl daemon-reload
-      sudo systemctl enable rke2-${local.role}.service
-      sudo systemctl start rke2-${local.role}.service
+      sudo chmod +x /home/${local.ssh_user}/start.sh
+      sudo /home/${local.ssh_user}/start.sh "${local.role}"
     EOT
     ]
   }
@@ -228,8 +225,8 @@ resource "null_resource" "get_kubeconfig" {
     inline = [<<-EOT
       set -x
       set -e
-      sudo cp /etc/rancher/rke2/rke2.yaml /home/${local.ssh_user}/kubeconfig.yaml
-      sudo chown ${local.ssh_user} /home/${local.ssh_user}/kubeconfig.yaml
+      sudo cp /etc/rancher/rke2/rke2.yaml "/home/${local.ssh_user}/kubeconfig.yaml"
+      sudo chown ${local.ssh_user} "/home/${local.ssh_user}/kubeconfig.yaml"
     EOT
     ]
   }
@@ -237,10 +234,13 @@ resource "null_resource" "get_kubeconfig" {
     command = <<-EOT
       set -x
       set -e
-      export FILE="${abspath(path.root)}/kubeconfig-${local.identifier}.yaml"
-      export REMOTE_PATH="/home/${local.ssh_user}/kubeconfig.yaml"
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${local.ssh_user}@${local.ssh_ip}:$REMOTE_PATH $FILE
-      sed -i "s/127.0.0.1/${local.ssh_ip}/g" "$FILE" || sed -i '' "s/127.0.0.1/${local.ssh_ip}/g" "$FILE"
+      FILE="${abspath(path.root)}/kubeconfig-${local.identifier}.yaml"
+      REMOTE_PATH="/home/${local.ssh_user}/kubeconfig.yaml"
+      IP="${local.ssh_ip}"
+      SSH_USER="${local.ssh_user}"
+
+      sudo chmod +x "${abspath(path.module)}/get_kubeconfig.sh"
+      sudo "${abspath(path.module)}/get_kubeconfig.sh" "$FILE" "$REMOTE_PATH" "$IP" "$SSH_USER"
     EOT
   }
 }
