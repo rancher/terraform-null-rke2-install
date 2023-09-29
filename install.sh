@@ -18,6 +18,9 @@ if [ "${INSTALL_METHOD}" = "rpm" ]; then
 else
   export INSTALL_RKE2_ARTIFACT_PATH="${REMOTE_PATH}";
 fi
+if [ ! -f "${REMOTE_PATH}"/install.sh ]; then
+  curl -sfL https://get.rke2.io -o "${REMOTE_PATH}"/install.sh
+fi
 
 chmod +x "${REMOTE_PATH}"/install.sh
 "${REMOTE_PATH}"/install.sh
