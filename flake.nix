@@ -38,6 +38,7 @@
             git
             terraform
             tflint
+            shellcheck
           ];
           shellHook = ''
             source .envrc
