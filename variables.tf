@@ -107,3 +107,13 @@ variable "install_method" {
   EOT
   default     = "tar"
 }
+variable "server_prep_script" {
+  type        = string
+  description = <<-EOT
+    The content of a script to run on the server before installing RKE2.
+    This script will be run as root.
+    This is useful for installing dependencies or configuring the server.
+    This can help mitigate issues like those found in https://docs.rke2.io/known_issues
+  EOT
+  default     = ""
+}
