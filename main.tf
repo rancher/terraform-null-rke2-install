@@ -290,6 +290,7 @@ resource "null_resource" "get_kubeconfig" {
       IP="${local.ssh_ip}"
       SSH_USER="${local.ssh_user}"
 
+      chmod +x "${abspath(path.module)}/get_kubeconfig.sh"
       "${abspath(path.module)}/get_kubeconfig.sh" "$FILE" "$REMOTE_PATH" "$IP" "$SSH_USER"
     EOT
   }
