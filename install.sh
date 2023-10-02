@@ -1,4 +1,5 @@
 #!/bin/sh
+# WARNING: This assumes a linux style OS
 set -x
 set -e
 ROLE="${1}"
@@ -12,9 +13,10 @@ fi
 
 export INSTALL_RKE2_CHANNEL="${RELEASE}"
 export INSTALL_RKE2_METHOD="${INSTALL_METHOD}"
+export INSTALL_RKE2_TYPE="${ROLE}"
 
 if [ "${INSTALL_METHOD}" = "rpm" ]; then 
-  export INSTALL_RKE2_ARTIFACT_PATH="";
+  unset INSTALL_RKE2_ARTIFACT_PATH;
 else
   export INSTALL_RKE2_ARTIFACT_PATH="${REMOTE_PATH}";
 fi
