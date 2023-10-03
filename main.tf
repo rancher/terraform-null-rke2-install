@@ -135,43 +135,6 @@ resource "null_resource" "configure" {
     ]
   }
 }
-# optionally run a script on the server before installing rke2
-# this can be used to mitigate OS specific issues or configuration
-resource "null_resource" "prep" {
-  count = (local.server_prep_script == "" ? 0 : 1)
-  depends_on = [
-    null_resource.write_config,
-    local_file.files_md5,
-    local_file.files_source,
-    null_resource.copy_to_remote,
-    null_resource.configure,
-  ]
-  triggers = {
-    release = local.release,
-    id      = local.identifier,
-    script  = local.server_prep_script,
-  }
-  connection {
-    type        = "ssh"
-    user        = local.ssh_user
-    script_path = "/home/${local.ssh_user}/rke2_server_prep_terraform"
-    agent       = true
-    host        = local.ssh_ip
-  }
-  provisioner "file" {
-    content     = local.server_prep_script
-    destination = "/home/${local.ssh_user}/prep.sh"
-  }
-  provisioner "remote-exec" {
-    inline = [<<-EOT
-      set -x
-      set -e
-      sudo chmod +x "/home/${local.ssh_user}/prep.sh"
-      sudo /home/${local.ssh_user}/prep.sh
-    EOT
-    ]
-  }
-}
 # run the install script, which may upgrade rke2 if it is already installed
 resource "null_resource" "install" {
   depends_on = [
@@ -180,7 +143,6 @@ resource "null_resource" "install" {
     local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
-    null_resource.prep,
   ]
   triggers = {
     files_md5 = jsonencode(local_file.files_md5[*]),
@@ -205,6 +167,44 @@ resource "null_resource" "install" {
       set -e
       sudo chmod +x "/home/${local.ssh_user}/install.sh"
       sudo /home/${local.ssh_user}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}"
+    EOT
+    ]
+  }
+}
+# optionally run a script on the server before starting rke2
+# this can be used to mitigate OS specific issues or configuration
+resource "null_resource" "prep" {
+  count = (local.server_prep_script == "" ? 0 : 1)
+  depends_on = [
+    null_resource.write_config,
+    local_file.files_md5,
+    local_file.files_source,
+    null_resource.copy_to_remote,
+    null_resource.configure,
+    null_resource.install,
+  ]
+  triggers = {
+    release = local.release,
+    id      = local.identifier,
+    script  = local.server_prep_script,
+  }
+  connection {
+    type        = "ssh"
+    user        = local.ssh_user
+    script_path = "/home/${local.ssh_user}/rke2_server_prep_terraform"
+    agent       = true
+    host        = local.ssh_ip
+  }
+  provisioner "file" {
+    content     = local.server_prep_script
+    destination = "/home/${local.ssh_user}/prep.sh"
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      set -x
+      set -e
+      sudo chmod +x "/home/${local.ssh_user}/prep.sh"
+      sudo /home/${local.ssh_user}/prep.sh
     EOT
     ]
   }
