@@ -6,7 +6,8 @@ locals {
   identifier          = var.identifier
   local_file_path     = var.local_file_path # since logic is determined by this variable, it will not be able to be set by a module
   local_path          = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
-  remote_path         = (var.remote_file_path == "" ? "/home/${local.ssh_user}/rke2_artifacts" : var.remote_file_path)
+  remote_workspace    = (var.remote_workspace == "" ? "/home/${local.ssh_user}" : var.remote_workspace)
+  remote_path         = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
   config_content      = var.rke2_config
   retrieve_kubeconfig = var.retrieve_kubeconfig
   install_method      = var.install_method
@@ -84,7 +85,7 @@ resource "null_resource" "copy_to_remote" {
   connection {
     type        = "ssh"
     user        = local.ssh_user
-    script_path = "/home/${local.ssh_user}/rke2_copy_terraform"
+    script_path = "${local.remote_workspace}/rke2_copy_terraform"
     agent       = true
     host        = local.ssh_ip
   }
@@ -117,20 +118,20 @@ resource "null_resource" "configure" {
   connection {
     type        = "ssh"
     user        = local.ssh_user
-    script_path = "/home/${local.ssh_user}/rke2_config_terraform"
+    script_path = "${local.remote_workspace}/rke2_config_terraform"
     agent       = true
     host        = local.ssh_ip
   }
   provisioner "file" {
     source      = "${abspath(path.module)}/configure.sh"
-    destination = "/home/${local.ssh_user}/configure.sh"
+    destination = "${local.remote_workspace}/configure.sh"
   }
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -x
       set -e
-      sudo chmod +x /home/${local.ssh_user}/configure.sh
-      sudo /home/${local.ssh_user}/configure.sh "${local.remote_path}"
+      sudo chmod +x ${local.remote_workspace}/configure.sh
+      sudo ${local.remote_workspace}/configure.sh "${local.remote_path}"
     EOT
     ]
   }
@@ -153,20 +154,20 @@ resource "null_resource" "install" {
   connection {
     type        = "ssh"
     user        = local.ssh_user
-    script_path = "/home/${local.ssh_user}/rke2_install_terraform"
+    script_path = "${local.remote_workspace}/rke2_install_terraform"
     agent       = true
     host        = local.ssh_ip
   }
   provisioner "file" {
     source      = "${abspath(path.module)}/install.sh"
-    destination = "/home/${local.ssh_user}/install.sh"
+    destination = "${local.remote_workspace}/install.sh"
   }
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -x
       set -e
-      sudo chmod +x "/home/${local.ssh_user}/install.sh"
-      sudo /home/${local.ssh_user}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}"
+      sudo chmod +x "${local.remote_workspace}/install.sh"
+      sudo ${local.remote_workspace}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}"
     EOT
     ]
   }
@@ -191,20 +192,20 @@ resource "null_resource" "prep" {
   connection {
     type        = "ssh"
     user        = local.ssh_user
-    script_path = "/home/${local.ssh_user}/rke2_server_prep_terraform"
+    script_path = "${local.remote_workspace}/rke2_server_prep_terraform"
     agent       = true
     host        = local.ssh_ip
   }
   provisioner "file" {
     content     = local.server_prep_script
-    destination = "/home/${local.ssh_user}/prep.sh"
+    destination = "${local.remote_workspace}/prep.sh"
   }
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -x
       set -e
-      sudo chmod +x "/home/${local.ssh_user}/prep.sh"
-      sudo /home/${local.ssh_user}/prep.sh
+      sudo chmod +x "${local.remote_workspace}/prep.sh"
+      sudo ${local.remote_workspace}/prep.sh
     EOT
     ]
   }
@@ -229,20 +230,20 @@ resource "null_resource" "start" {
   connection {
     type        = "ssh"
     user        = local.ssh_user
-    script_path = "/home/${local.ssh_user}/rke2_start_terraform"
+    script_path = "${local.remote_workspace}/rke2_start_terraform"
     agent       = true
     host        = local.ssh_ip
   }
   provisioner "file" {
     source      = "${abspath(path.module)}/start.sh"
-    destination = "/home/${local.ssh_user}/start.sh"
+    destination = "${local.remote_workspace}/start.sh"
   }
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -x
       set -e
-      sudo chmod +x /home/${local.ssh_user}/start.sh
-      sudo /home/${local.ssh_user}/start.sh "${local.role}"
+      sudo chmod +x ${local.remote_workspace}/start.sh
+      sudo ${local.remote_workspace}/start.sh "${local.role}"
     EOT
     ]
   }
@@ -268,7 +269,7 @@ resource "null_resource" "get_kubeconfig" {
   connection {
     type        = "ssh"
     user        = local.ssh_user
-    script_path = "/home/${local.ssh_user}/get_kubeconfig_terraform"
+    script_path = "${local.remote_workspace}/get_kubeconfig_terraform"
     agent       = true
     host        = local.ssh_ip
   }
@@ -276,8 +277,8 @@ resource "null_resource" "get_kubeconfig" {
     inline = [<<-EOT
       set -x
       set -e
-      sudo cp /etc/rancher/rke2/rke2.yaml "/home/${local.ssh_user}/kubeconfig.yaml"
-      sudo chown ${local.ssh_user} "/home/${local.ssh_user}/kubeconfig.yaml"
+      sudo cp /etc/rancher/rke2/rke2.yaml "${local.remote_workspace}/kubeconfig.yaml"
+      sudo chown ${local.ssh_user} "${local.remote_workspace}/kubeconfig.yaml"
     EOT
     ]
   }
@@ -286,7 +287,7 @@ resource "null_resource" "get_kubeconfig" {
       set -x
       set -e
       FILE="${abspath(path.root)}/kubeconfig-${local.identifier}.yaml"
-      REMOTE_PATH="/home/${local.ssh_user}/kubeconfig.yaml"
+      REMOTE_PATH="${local.remote_workspace}/kubeconfig.yaml"
       IP="${local.ssh_ip}"
       SSH_USER="${local.ssh_user}"
 
