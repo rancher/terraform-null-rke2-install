@@ -49,6 +49,15 @@ variable "remote_file_path" {
   EOT
   default     = ""
 }
+variable "remote_workspace" {
+  type        = string
+  description = <<-EOT
+    The path to a directory where the module can store temporary files and execute scripts. eg. "/var/tmp"
+    The user specified in the ssh_user variable must have read, write, and execute permissions to this directory.
+    If left blank "/home/<ssh_user>" will be used.
+  EOT
+  default     = ""
+}
 variable "ssh_ip" {
   type        = string
   description = <<-EOT

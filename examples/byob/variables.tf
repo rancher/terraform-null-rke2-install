@@ -1,14 +1,14 @@
 variable "key" {
-  type    = string
-  default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ4HmZ/KHZ/8KsvYlz6wqpoWoOaH1edHId2aK6niqKIw terraform-ci@suse.com"
+  type        = string
+  description = "The content of the public ssh key to use."
 }
 variable "key_name" {
-  type    = string
-  default = "terraform-ci"
+  type        = string
+  description = "The name of the ssh key pair to use, must already exist in AWS and have a corresponding 'Name' tag."
 }
 variable "rke2_version" {
-  type    = string
-  default = "v1.27.4+rke2r1"
+  type        = string
+  description = "The version of rke2 to install, must be a valid tag name like v1.21.6+rke2r1."
 }
 variable "identifier" {
   type        = string
