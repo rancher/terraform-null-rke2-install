@@ -10,5 +10,6 @@ rke2*
 examples/*/installer.sh
 examples/*/sha256sum.txt
 examples/*/tmp
+examples/*/kubeconfig-*.yaml
 id_ed25519_*
 kubeconfig.yaml
