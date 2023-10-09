@@ -1,4 +1,4 @@
 write-kubeconfig-mode: 600
 cni: calico
-profile: "cis-1.23"
+profile: "cis"
 selinux: true
