@@ -1,11 +1,7 @@
 name: 'E2e Testing'
 
 on:
-  pull_request_target:
-    types:
-      - opened
-      - edited
-      - synchronize
+  pull_request:
     branches:
       - main
 
