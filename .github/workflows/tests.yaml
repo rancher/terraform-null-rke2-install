@@ -9,6 +9,10 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  AWS_DEFAULT_REGION: us-west-1
+  AWS_REGION: us-west-1
+
 jobs:
   terraform:
     name: 'Terraform'
@@ -76,7 +80,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
-          aws-region: us-west-1
+          aws-region: ${{env.AWS_REGION}}
 
       - name: Run Terratest
         run: cd ./tests && go test -v -timeout=40m -parallel=10
