@@ -72,7 +72,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
-          aws-region: ${{env.AWS_REGION}}
+          aws-region: us-west-1
 
       - name: Run Terratest
         run: cd ./tests && go test -v -timeout=40m -parallel=10
