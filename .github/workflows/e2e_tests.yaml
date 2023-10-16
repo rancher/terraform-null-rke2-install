@@ -1,9 +1,9 @@
-name: 'E2e Testing'
+name: E2e Tests
 
 # when Smoke Testing is complete, run E2e Testing and comment on PR
 on:
   workflow_run:
-    workflows: ["Smoke Testing"]
+    workflows: ["Smoke Tests"]
     types:
       - completed
 

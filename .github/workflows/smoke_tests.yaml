@@ -1,12 +1,9 @@
-name: Smoke Testing
+name: Smoke Tests
 
 on:
   pull_request:
     branches:
       - main
-
-permissions:
-  pull-requests: read
 
 jobs:
   terraform:
