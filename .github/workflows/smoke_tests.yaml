@@ -1,4 +1,4 @@
-name: Smoke Tests
+name: SmokeTests
 
 on:
   pull_request:
@@ -75,3 +75,17 @@ jobs:
         with:
           name: pr
           path: pr/
+
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Make sure test deployment is successful before merging.'
+            })

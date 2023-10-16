@@ -1,15 +1,15 @@
-name: E2e Tests
+name: E2eTests
 
 # when Smoke Testing is complete, run E2e Testing and comment on PR
 on:
   workflow_run:
-    workflows: ["Smoke Tests"]
-    types:
-      - completed
+    workflows: [SmokeTests]
+    types: [completed]
+    branches: [main]
 
-permissions:
-  id-token: write
-  contents: read
+# permissions:
+#   id-token: write
+#   contents: read
 
 env:
   AWS_REGION: us-west-1
