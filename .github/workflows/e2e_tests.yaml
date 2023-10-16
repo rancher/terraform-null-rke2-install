@@ -1,7 +1,7 @@
-name: 'Testing'
+name: 'E2e Testing'
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -13,36 +13,17 @@ env:
   AWS_REGION: us-west-1
 
 jobs:
-  terraform:
-    name: 'Terraform'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
-        role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
-        aws-region: ${{env.AWS_REGION}}
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.5.5
-        with_wrapper: false
-    - name: Terraform Init
-      run: cd examples/basic && terraform init -upgrade
-
   terratest:
     name: 'Terratest'
     runs-on: ubuntu-latest
+    environment: test
     steps:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
+        role-to-assume: ${{secrets.AWS_ROLE_ID}}
         role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
         aws-region: ${{env.AWS_REGION}}
     - name: Run Terratest
