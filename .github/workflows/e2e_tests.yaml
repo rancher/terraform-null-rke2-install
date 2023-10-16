@@ -23,7 +23,7 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{secrets.AWS_ROLE_ID}}
+        role-to-assume: ${{ secrets.AWS_ROLE_ID }}
         role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
         aws-region: ${{env.AWS_REGION}}
     - name: Run Terratest
