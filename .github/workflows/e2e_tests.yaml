@@ -1,9 +1,11 @@
 name: 'E2e Testing'
 
+# when Smoke Testing is complete, run E2e Testing and comment on PR
 on:
-  pull_request_target:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Smoke Testing"]
+    types:
+      - completed
 
 permissions:
   id-token: write
@@ -20,11 +22,56 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: ${{ secrets.AWS_ROLE_ID }}
-        role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
-        aws-region: ${{env.AWS_REGION}}
-    - name: Run Terratest
-      run: cd ./tests && go test -v -timeout=40m -parallel=10
+
+  terratest:
+    name: 'Terratest'
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: 'Download PR number'
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
+      - run: unzip pr.zip
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ID }}
+          role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
+          aws-region: ${{env.AWS_REGION}}
+
+      - name: Run Terratest
+        run: cd ./tests && go test -v -timeout=40m -parallel=10
+
+      - name: 'Comment on PR'
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            var fs = require('fs');
+            var issue_number = Number(fs.readFileSync('./NR'));
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              body: 'Tests passed. Thank you for the PR!'
+            });

@@ -1,4 +1,4 @@
-name: 'Smoke Testing'
+name: Smoke Testing
 
 on:
   pull_request:
@@ -64,3 +64,15 @@ jobs:
       - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  get_pr_number:
+    steps:        
+      - uses: actions/checkout@v2
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: pr/
