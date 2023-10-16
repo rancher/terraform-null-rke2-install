@@ -66,6 +66,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   get_pr_number:
+    name: Get PR Number
+    runs-on: ubuntu-latest
     steps:        
       - uses: actions/checkout@v2
       - name: Save PR number
