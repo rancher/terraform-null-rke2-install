@@ -2,33 +2,34 @@ name: Tests
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize]
-    branches: [main]
+    types: [opened, reopened, edited, synchronize]
 
 jobs:
   remind-about-e2e-testing:
-    name: 'Remind about e2e testing'
+    name: 'Remind about e2e tests'
     runs-on: ubuntu-latest
     steps:
       - name: Comment-to-contributor
-        uses: unsplash/comment-on-pr@v1
+        uses: github-actions-up-and-running/pr-comment@v1.0.0
         with:
-          message: |
-            Hi @${{ github.actor }}, thanks for your pull request!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            message: |
+              Hi @${{ github.actor }}, thanks for your pull request!
 
-            This module has e2e tests that run on every pull request. Please make sure to run them locally before submitting your PR.
+              This module has e2e tests that run on every pull request. Please make sure to run them locally before submitting your PR.
 
-            To run the tests, you need to have Go installed and be authenticated to AWS.
-            
-            Then, run the following commands:
+              To run the tests, you need to have Go installed and be authenticated to AWS.
+              Then, run the following commands:
 
-            ```shell
-            cd ./tests
-            go test -v -timeout=40m -parallel=10
-            ```
+              ```shell
+              cd ./tests
+              go test -v -timeout=40m -parallel=10
+              ```
       - name: Comment-to-reviewer
-        uses: unsplash/comment-on-pr@v1
+        uses: github-actions-up-and-running/pr-comment@v1.0.0
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           message: |
             All Reviewers!
             Do not approve this PR unless the e2eTests workflow has passed.
