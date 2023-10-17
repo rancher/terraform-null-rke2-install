@@ -1,6 +1,11 @@
 name: e2eTests
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      pull_request_head_ref:
+        description: 'Pull request head ref'
+        required: true
 
 env:
   AWS_REGION: us-west-1
@@ -13,11 +18,17 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: CheckoutPR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.pull_request_head_ref }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
           aws-region: ${{env.AWS_REGION}}
+
       - name: Run Terratest
         run: cd ./tests && go test -v -timeout=40m -parallel=10
