@@ -1,25 +1,11 @@
 name: e2eTests
 
-on: 
-  workflow_dispatch:
-    environment: test
-  pull_request:
-    branches:
-      - main
+on: workflow_dispatch
 
 env:
   AWS_REGION: us-west-1
 
 jobs:
-  github-token:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate a token
-        id: generate_token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.RENOVATE_APP_ID }}
-          private-key: ${{ secrets.RENOVATE_PRIVATE_KEY }}
   terratest:
     name: 'Terratest'
     runs-on: ubuntu-latest
@@ -33,7 +19,5 @@ jobs:
           role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
           aws-region: ${{env.AWS_REGION}}
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
       - name: Run Terratest
         run: cd ./tests && go test -v -timeout=40m -parallel=10
