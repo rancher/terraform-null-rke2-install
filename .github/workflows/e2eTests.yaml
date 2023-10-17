@@ -1,7 +1,11 @@
 name: e2eTests
 
-on: [workflow_dispatch]
-
+on: 
+  workflow_dispatch:
+    environment: test
+  pull_request:
+    branches:
+      - main
 
 env:
   AWS_REGION: us-west-1
