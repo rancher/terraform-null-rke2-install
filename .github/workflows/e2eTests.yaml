@@ -1,11 +1,8 @@
 name: e2eTests
 
 on:
-  workflow_dispatch:
-    inputs:
-      pull_request_head_ref:
-        description: 'Pull request head ref'
-        required: true
+  repository_dispatch:
+    types: [run-e2e]
 
 env:
   AWS_REGION: us-west-1
@@ -21,7 +18,7 @@ jobs:
       - name: CheckoutPR
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.pull_request_head_ref }}
+          ref: ${{ github.event.client_payload.ref }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

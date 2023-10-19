@@ -1,5 +1,5 @@
 alias gs='git status'
-alias gm='git add -A;git commit -s -m '
+alias gd='git diff'
 alias tf='terraform'
 alias tfa='terraform apply --auto-approve'
 alias tfd='terraform destroy --auto-approve'
