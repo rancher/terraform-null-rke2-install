@@ -4,6 +4,11 @@ on:
   repository_dispatch:
     types: [run-e2e]
 
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
 env:
   AWS_REGION: us-west-1
 
