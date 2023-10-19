@@ -24,9 +24,6 @@ jobs:
         with:
           release-type: terraform-module
 
-      - name: release-please-output
-        run: echo "${{ steps.release-please.outputs.pr }}"
-
       - name: 'Remind to wait'
         uses: peter-evans/create-or-update-comment@v3
         with:
