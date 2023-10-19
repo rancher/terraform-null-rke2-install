@@ -9,7 +9,7 @@ If the contents of your config change, this module will attempt to install the n
 
 This is the version of rke2 to install, even when supplying the files it is necessary to specify the exact version of rke2 you are installing.
 
-- If the release version changes, this module will attempt to run the installation again. (this may not work)
+- If the release version changes, this module will attempt to run the installation again.
 
 ## RKE2 Config
 
@@ -17,11 +17,15 @@ If not supplying your own files you may provide the string (utf8) contents of yo
 If the value of this variable changes, then the module will copy the new config to the remote server and restart the process.
 This allows you to manage your config iteratively and separately from this module.
 
-You may also provide an `rke2-config.yaml` in the local directory specified in `local_file_path` variable.
-If the contents of this file change, then this module will detect that, copy the new config to the remote server, and restart the process.
+You may also provide any number of `*.yaml ` files in the local directory specified in `local_file_path` variable,
+these files will be copied to the remote server and moved into a yaml.d directory which rke2 will pick up and read during install. If the contents of any files change, then this module will detect the change, copy the new config to the remote server, and restart the process.
 This allows you to manage your config iteratively and separately from this module.
 
 ## Examples
+
+The examples directory serves two purposes; to give example implementations of this module, and to provide use cases for the tests.
+All examples are tested using Terratest, you can find them in the ./tests directory.
+Examples may seem redundant to some extent, they are meant to be viewed and tested independently and concurrently.
 
 ### Local State
 
