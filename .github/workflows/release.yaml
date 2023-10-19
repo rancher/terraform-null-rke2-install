@@ -19,14 +19,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: release-please
+        id: release-please
         uses: google-github-actions/release-please-action@v3
         with:
           release-type: terraform-module
 
+      - name: release-please-output
+        run: echo "${{ steps.release-please.outputs.pr }}"
+
       - name: 'Remind to wait'
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: ${{ steps.release-please.outputs.pr }}
+          issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
           body: |
             Please make sure e2e tests pass before approving PR!
 
