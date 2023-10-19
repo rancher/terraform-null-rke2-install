@@ -5,7 +5,8 @@ on:
     types: [opened, reopened, edited, synchronize]
 
 permissions:
-  id-token: write
+  pull-requests: write
+  issues: write
 
 jobs:
   remind-about-e2e-testing:
