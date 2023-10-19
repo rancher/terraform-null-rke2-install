@@ -14,9 +14,9 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           message: |
-            Hi @${{ github.actor }}, thanks for your pull request!
-
-            This module has e2e tests that run on every pull request. Please make sure to run them locally before submitting your PR.
+            Thanks for your pull request!
+            This module has e2e tests that run on every pull request.
+            Please make sure to run them locally before submitting your PR.
 
             To run the tests, you need to have Go installed and be authenticated to AWS.
             Then, run the following commands:
@@ -33,4 +33,4 @@ jobs:
             All Reviewers!
             Do not approve this PR unless the e2eTests workflow has passed.
             You will need to trigger the e2eTests workflow manually by clicking the "Run workflow" button on the Actions tab.
-            Please input $${{ github.event.pull_request.head.ref }} as the pull_request_head_ref input.
+            Please input ${{ github.event.pull_request.head.ref }} as the pull_request_head_ref input.
