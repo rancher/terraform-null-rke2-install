@@ -13,19 +13,18 @@ jobs:
         uses: github-actions-up-and-running/pr-comment@v1.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            message: |
-              Hi @${{ github.actor }}, thanks for your pull request!
+          message: |
+            Hi @${{ github.actor }}, thanks for your pull request!
 
-              This module has e2e tests that run on every pull request. Please make sure to run them locally before submitting your PR.
+            This module has e2e tests that run on every pull request. Please make sure to run them locally before submitting your PR.
 
-              To run the tests, you need to have Go installed and be authenticated to AWS.
-              Then, run the following commands:
+            To run the tests, you need to have Go installed and be authenticated to AWS.
+            Then, run the following commands:
 
-              ```shell
-              cd ./tests
-              go test -v -timeout=40m -parallel=10
-              ```
+            ```shell
+            cd ./tests
+            go test -v -timeout=40m -parallel=10
+            ```
       - name: Comment-to-reviewer
         uses: github-actions-up-and-running/pr-comment@v1.0.0
         with:
