@@ -16,3 +16,8 @@ jobs:
       - uses: google-github-actions/release-please-action@v3
         with:
           release-type: terraform-module
+
+      - uses: peter-evans/repository-dispatch@v2
+        with:
+          event-type: run-e2e
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "pr": "${{steps.release.outputs.pr}}"}'

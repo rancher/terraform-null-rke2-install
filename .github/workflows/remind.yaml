@@ -26,7 +26,3 @@ jobs:
             Reviewers!
             Please make sure the e2e tests pass before approving.
 
-      - uses: peter-evans/repository-dispatch@v2
-        with:
-          event-type: run-e2e
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
