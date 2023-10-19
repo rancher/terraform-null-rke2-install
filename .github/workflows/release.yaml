@@ -41,11 +41,11 @@ jobs:
 
       - uses: actions/checkout@v2
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.5.7
-        with_wrapper: false
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.5.7
+          with_wrapper: false
 
       - name: 'Run Terratest'
         run: cd ./tests && go test -v -timeout=40m -parallel=10
