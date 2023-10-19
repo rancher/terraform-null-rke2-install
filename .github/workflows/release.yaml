@@ -53,6 +53,7 @@ jobs:
       - name: 'Report Success'
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: ${{ steps.release-please.outputs.pr.number }}
+          issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
           body: |
             End to End Tests Passed!
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
