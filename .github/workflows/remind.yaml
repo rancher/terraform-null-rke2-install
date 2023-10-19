@@ -15,13 +15,13 @@ jobs:
       - name: Thank contributor
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: github.event.pull_request.number
+          issue-number: ${{ github.event.pull_request.number }}
           body: |
             Thank you for your contribution!
       - name: Remind reviewer
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: github.event.pull_request.number
+          issue-number: ${{ github.event.pull_request.number }}
           body: |
             Reviewers!
             Please make sure the e2e tests pass before approving.
