@@ -29,8 +29,8 @@ jobs:
         with:
           issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
           body: |
-            Please make sure e2e tests pass before approving Release!
-
+            Please make sure e2e tests pass before merging this PR!
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: 'Configure AWS credentials'
         uses: aws-actions/configure-aws-credentials@v4
@@ -53,6 +53,7 @@ jobs:
       - name: 'Report Success'
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: ${{ steps.release-please.outputs.pr.number }}
+          issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
           body: |
             End to End Tests Passed!
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
