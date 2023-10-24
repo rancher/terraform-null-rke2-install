@@ -4,10 +4,6 @@ variable "release" {
     The release channel version of RKE2 to install.
     This should match the release version of the files in the remote directory.
   EOT
-  validation {
-    condition     = can(regex("v[0-9]+\\.[0-9]+\\.[0-9]+\\+rke2r[0-9]+", var.release))
-    error_message = "Must be a valid version, eg. 'v1.27.3+rke2r1'."
-  }
 }
 variable "role" {
   type        = string
@@ -75,15 +71,6 @@ variable "ssh_user" {
     The user must have sudo/admin privileges.
     This script will only run the install script, please ensure that the server is ready.
   EOT
-}
-variable "rke2_config" {
-  type        = string
-  description = <<-EOT
-    The content of the RKE2 `config.yaml` to use.
-    If this is not set, the module looks in the 'local_file_path' directory for a file named 'rke2-config.yaml'.
-    If that file does not exist or 'local_file_path' is not set, the module will use an empty configuration.
-  EOT
-  default     = ""
 }
 variable "identifier" {
   type        = string

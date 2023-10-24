@@ -25,7 +25,9 @@ module "aws_access" {
 }
 
 module "aws_server" {
-  depends_on          = [module.aws_access]
+  depends_on = [
+    module.aws_access
+  ]
   source              = "rancher/server/aws"
   version             = "v0.0.16"
   image               = "rhel-8-cis" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
@@ -40,6 +42,10 @@ module "aws_server" {
 }
 
 module "config" {
+  depends_on = [
+    module.aws_access,
+    module.aws_server,
+  ]
   source            = "rancher/rke2-config/local"
   version           = "v0.0.5"
   token             = random_uuid.join_token.result
@@ -49,8 +55,41 @@ module "config" {
   node-ip           = [module.aws_server.private_ip]
 }
 
+resource "null_resource" "write_config" {
+  depends_on = [
+    module.aws_access,
+    module.aws_server,
+    module.config,
+  ]
+  for_each = toset(["${local.file_path}/50-initial-generated-config.yaml"])
+  triggers = {
+    config_content = module.config.yaml_config,
+  }
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+      set -x
+      install -d "${local.file_path}"
+      cat << 'EOF' > "${each.key}"
+      ${module.config.yaml_config}
+      EOF
+      chmod 0600 "${each.key}"
+    EOT
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      rm -f "${each.key}"
+    EOT
+  }
+}
 resource "null_resource" "write_extra_config" {
-  for_each = toset([local.file_path]) # for_each is used here to allow the destroy provisioner to run
+  depends_on = [
+    module.aws_access,
+    module.aws_server,
+    module.config,
+  ]
+  for_each = toset(["${local.file_path}/51-extra-config.yaml"])
   triggers = {
     config_content = local.extra_config,
   }
@@ -58,16 +97,17 @@ resource "null_resource" "write_extra_config" {
     command = <<-EOT
       set -e
       set -x
-      install -d ${each.key}
-      cat << 'EOF' > "${each.key}/51-extra-config.yaml"
+      install -d "${local.file_path}"
+      cat << 'EOF' > "${each.key}"
       ${local.extra_config}
       EOF
+      chmod 0600 "${each.key}"
     EOT
   }
   provisioner "local-exec" {
     when    = destroy
     command = <<-EOT
-      rm -rf "${each.key}"
+      rm -f "${each.key}"
     EOT
   }
 }
@@ -78,12 +118,13 @@ module "TestRpm" {
     module.aws_access,
     module.aws_server,
     module.config,
+    null_resource.write_config,
+    null_resource.write_extra_config,
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   # version = "v0.0.21" # when using this example you will need to set the version
   ssh_ip              = module.aws_server.public_ip
   ssh_user            = local.username
-  rke2_config         = module.config.yaml_config
   identifier          = module.aws_server.id
   release             = local.rke2_version
   install_method      = "rpm"

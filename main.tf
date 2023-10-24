@@ -8,46 +8,19 @@ locals {
   local_path          = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
   remote_workspace    = (var.remote_workspace == "" ? "/home/${local.ssh_user}" : var.remote_workspace)
   remote_path         = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
-  config_content      = var.rke2_config
   retrieve_kubeconfig = var.retrieve_kubeconfig
   install_method      = var.install_method
   server_prep_script  = var.server_prep_script
 }
 
-resource "null_resource" "write_config" {
-  # the name needs to be something highly unlikely to be used by a user, so that we don't clobber any of their configs
-  # we also want the name to be easily recognizable for what it is (the initially generated config)
-  # we also want the name to have an index so that users can supply their own configs before or after this one (they are merged alphabetically)
-  # the name should use dashes instead of underscores, as a matter of convention (marginally helps sorting)
-  for_each = (local.local_file_path == "" ? [] : toset(["${local.local_path}/50-initial-generated-config.yaml"]))
-  triggers = {
-    config_content = local.config_content,
-  }
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -e
-      set -x
-      chmod +x "${abspath(path.module)}/write_config.sh"
-      "${abspath(path.module)}/write_config.sh" "${local.local_path}" "${each.key}" "${local.config_content}"
-    EOT
-  }
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-      rm -f "${each.key}"
-    EOT
-  }
-}
-
 # this module assumes that any *.yaml files in the path are meant to be copied to the config directory
 # we don't want to manage the files in case the user is managing them with another tool
 # we do need to know when the files change so we can run the install script and restart the service
-## so we use a local_file data source to track tmp files that are created from the local_path
+## so we use a local_file data source to track tmp files that are created from the local_file_path
 # if a local path was not provided we don't need to track anything
 
 # this should track files that don't exist until apply time
 resource "local_file" "files_source" {
-  depends_on           = [null_resource.write_config]
   for_each             = (local.local_file_path == "" ? [] : fileset(local.local_path, "*"))
   source               = "${local.local_path}/${each.key}"
   filename             = "${abspath(path.root)}/tmp/${each.key}"
@@ -58,7 +31,6 @@ resource "local_file" "files_source" {
 # this is only for tracking changes to files that already exist
 resource "local_file" "files_md5" {
   depends_on = [
-    null_resource.write_config,
     local_file.files_source,
   ]
   for_each             = (local.local_file_path == "" ? [] : fileset(local.local_path, "*"))
@@ -72,7 +44,6 @@ resource "local_file" "files_md5" {
 resource "null_resource" "copy_to_remote" {
   count = (local.local_file_path == "" ? 0 : 1)
   depends_on = [
-    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
   ]
@@ -104,7 +75,6 @@ resource "null_resource" "copy_to_remote" {
 }
 resource "null_resource" "configure" {
   depends_on = [
-    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -139,7 +109,6 @@ resource "null_resource" "configure" {
 # run the install script, which may upgrade rke2 if it is already installed
 resource "null_resource" "install" {
   depends_on = [
-    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -177,7 +146,6 @@ resource "null_resource" "install" {
 resource "null_resource" "prep" {
   count = (local.server_prep_script == "" ? 0 : 1)
   depends_on = [
-    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -213,7 +181,6 @@ resource "null_resource" "prep" {
 # start or restart rke2 service
 resource "null_resource" "start" {
   depends_on = [
-    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -251,7 +218,6 @@ resource "null_resource" "start" {
 resource "null_resource" "get_kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
@@ -299,7 +265,6 @@ resource "null_resource" "get_kubeconfig" {
 data "local_file" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    null_resource.write_config,
     local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
