@@ -44,7 +44,7 @@ module "config" {
 # the default location for the files will be `./rke2`
 module "download" {
   source  = "rancher/rke2-download/github"
-  version = "v0.0.2"
+  version = "v0.0.3"
 }
 
 resource "null_resource" "write_config" {
@@ -63,7 +63,9 @@ resource "null_resource" "write_config" {
       set -e
       set -x
       install -d "${module.download.path}"
-      echo "${module.config.yaml_config}" > "${each.key}"
+      cat << 'EOF' > "${each.key}"
+      ${module.config.yaml_config}
+      EOF
       chmod 0600 "${each.key}"
     EOT
   }

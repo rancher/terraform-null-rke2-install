@@ -16,25 +16,22 @@ variable "role" {
 variable "local_file_path" {
   type        = string
   description = <<-EOT
-    The path to the directory on the machine running Terraform with the files to use. eg. "./rke2"
-    If this variable is empty, the module assumes that the files are already on the remote server.
-    This module can't track changes to files on the remote server, so if you change those files you will need to alter the "identifier" or "release" variable to trigger an update.
-    If this variable is set, the module will copy the files in the given directory to the remote server.
-    Since this variable determines what resources are deployed, you will need to set it manually in the root module, it can't come from a module output.
-    Files must match expected file names for the installer to succeed:
+    The path to the directory on the machine running Terraform with the files to use.
+    If left empty, the root module path + rke2 will be used. eg. '~/root/module/path/rke2'
+    The module will copy the files in the given directory to the remote server.
+    Different install methods have different requirements: for rpm install, you don't need to include any files.
+    Place your rke2 configs here, make sure they have .yaml file endings.
+    For 'tar' install method, files must match expected file names for the installer to succeed:
       "rke2-images.<system>-<arch>.tar.gz",
       "rke2.<system>-<arch>.tar.gz",
       "sha256sum-<arch>.txt",
-      "install.sh",
+      "install.sh"
   EOT
-  default     = ""
 }
 variable "remote_file_path" {
   type        = string
   description = <<-EOT
     The path to the directory for the files on the remote server. eg. "/tmp/rke2"
-    If the local_file_path variable is empty, the module assumes that the files are already on the remote server.
-    If the local_file_path variable is set, the module will copy the files in that directory to the remote server.
     Files must match expected file names:
       "rke2-images.<system>-<arch>.tar.gz",
       "rke2.<system>-<arch>.tar.gz",
@@ -112,4 +109,13 @@ variable "server_prep_script" {
     This can help mitigate issues like those found in https://docs.rke2.io/known_issues
   EOT
   default     = ""
+}
+variable "start" {
+  type        = bool
+  description = <<-EOT
+    Should the module start rke2.
+    There are some limited situations where we want to install rke2, but not start it.
+    Starting rke2 is the default behavior.
+  EOT
+  default     = true
 }

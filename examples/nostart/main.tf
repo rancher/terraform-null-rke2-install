@@ -12,6 +12,7 @@ locals {
   # root modules should be secured properly (including the state), and should represent your running infrastructure
 }
 resource "random_uuid" "join_token" {}
+
 # selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner
 module "aws_access" {
   source              = "rancher/access/aws"
@@ -83,6 +84,7 @@ resource "null_resource" "write_config" {
     EOT
   }
 }
+
 resource "null_resource" "write_extra_config" {
   depends_on = [
     module.aws_access,
@@ -113,7 +115,7 @@ resource "null_resource" "write_extra_config" {
 }
 
 # everything before this module is not necessary, you can generate the resources manually or using other methods
-module "TestRpm" {
+module "install_without_starting" {
   depends_on = [
     module.aws_access,
     module.aws_server,
@@ -122,14 +124,14 @@ module "TestRpm" {
     null_resource.write_extra_config,
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  # version = "v0.0.21" # when using this example you will need to set the version
-  ssh_ip              = module.aws_server.public_ip
-  ssh_user            = local.username
-  identifier          = module.aws_server.id
-  release             = local.rke2_version
-  install_method      = "rpm"
-  retrieve_kubeconfig = true
-  local_file_path     = local.file_path
-  remote_workspace    = module.aws_server.workfolder
-  server_prep_script  = local.prep_script
+  # version = "v0.1.1" # when using this example you will need to set the version
+  ssh_ip             = module.aws_server.public_ip
+  ssh_user           = local.username
+  identifier         = module.aws_server.id
+  release            = local.rke2_version
+  install_method     = "rpm"
+  local_file_path    = local.file_path
+  remote_workspace   = module.aws_server.workfolder
+  server_prep_script = local.prep_script
+  start              = false
 }

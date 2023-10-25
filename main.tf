@@ -4,13 +4,14 @@ locals {
   ssh_ip              = var.ssh_ip
   ssh_user            = var.ssh_user
   identifier          = var.identifier
-  local_file_path     = var.local_file_path # since logic is determined by this variable, it will not be able to be set by a module
+  local_file_path     = var.local_file_path
   local_path          = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
   remote_workspace    = (var.remote_workspace == "" ? "/home/${local.ssh_user}" : var.remote_workspace)
   remote_path         = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
   retrieve_kubeconfig = var.retrieve_kubeconfig
   install_method      = var.install_method
   server_prep_script  = var.server_prep_script
+  start               = var.start
 }
 
 # this module assumes that any *.yaml files in the path are meant to be copied to the config directory
@@ -21,7 +22,7 @@ locals {
 
 # this should track files that don't exist until apply time
 resource "local_file" "files_source" {
-  for_each             = (local.local_file_path == "" ? [] : fileset(local.local_path, "*"))
+  for_each             = fileset(local.local_path, "*")
   source               = "${local.local_path}/${each.key}"
   filename             = "${abspath(path.root)}/tmp/${each.key}"
   file_permission      = 0755
@@ -33,7 +34,7 @@ resource "local_file" "files_md5" {
   depends_on = [
     local_file.files_source,
   ]
-  for_each             = (local.local_file_path == "" ? [] : fileset(local.local_path, "*"))
+  for_each             = fileset(local.local_path, "*")
   content              = filemd5("${local.local_path}/${each.key}")
   filename             = "${abspath(path.root)}/tmp/${each.key}.md5"
   file_permission      = 0755
@@ -42,7 +43,6 @@ resource "local_file" "files_md5" {
 
 # if local path specified copy all files and folders to the remote_path directory
 resource "null_resource" "copy_to_remote" {
-  count = (local.local_file_path == "" ? 0 : 1)
   depends_on = [
     local_file.files_md5,
     local_file.files_source,

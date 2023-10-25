@@ -7,9 +7,9 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func TestRemote(t *testing.T) {
+func TestNoStart(t *testing.T) {
 	t.Parallel()
-	directory := "remote"
+	directory := "nostart"
 	region := "us-west-1"
 	owner := "terraform-ci@suse.com"
 	release := getLatestRelease(t, "rancher", "rke2")
