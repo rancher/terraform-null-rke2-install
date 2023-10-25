@@ -38,28 +38,58 @@ module "aws_server" {
 
 module "config" {
   source  = "rancher/rke2-config/local"
-  version = "v0.0.5"
+  version = "v0.1.0"
 }
 
 # the default location for the files will be `./rke2`
 module "download" {
   source  = "rancher/rke2-download/github"
-  version = "v0.0.1"
+  version = "v0.0.3"
 }
 
-# everything before this module is not necessary, you can generate the resources manually or using other methods
-module "TestBasic" {
+resource "null_resource" "write_config" {
   depends_on = [
     module.aws_access,
     module.aws_server,
     module.config,
     module.download,
   ]
+  for_each = toset(["${module.download.path}/50-initial-generated-config.yaml"])
+  triggers = {
+    config_content = module.config.yaml_config,
+  }
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+      set -x
+      install -d "${module.download.path}"
+      cat << 'EOF' > "${each.key}"
+      ${module.config.yaml_config}
+      EOF
+      chmod 0600 "${each.key}"
+    EOT
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      rm -f "${each.key}"
+    EOT
+  }
+}
+
+# everything before this module is not necessary, you can generate the resources manually or use other methods
+module "basic_install" {
+  depends_on = [
+    module.aws_access,
+    module.aws_server,
+    module.config,
+    module.download,
+    null_resource.write_config,
+  ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  # version = "v0.0.21" # when using this example you will need to set the version
+  # version = "v0.0.8" # when using this example you will need to set the version
   ssh_ip          = module.aws_server.public_ip
   ssh_user        = local.username
-  rke2_config     = module.config.yaml_config
   identifier      = module.aws_server.id
   release         = local.rke2_version
   local_file_path = module.download.path

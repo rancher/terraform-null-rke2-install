@@ -11,5 +11,6 @@ examples/*/installer.sh
 examples/*/sha256sum.txt
 examples/*/tmp
 examples/*/kubeconfig-*.yaml
+examples/*/tf-*
 id_ed25519_*
 kubeconfig.yaml

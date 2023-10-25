@@ -1,4 +1,4 @@
 output "kubeconfig" {
-  value     = module.TestBasic.kubeconfig
+  value     = module.basic_install.kubeconfig
   sensitive = true
 }
