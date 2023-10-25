@@ -180,6 +180,7 @@ resource "null_resource" "prep" {
 }
 # start or restart rke2 service
 resource "null_resource" "start" {
+  count = (local.start == true ? 1 : 0)
   depends_on = [
     local_file.files_md5,
     local_file.files_source,
