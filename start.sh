@@ -11,5 +11,5 @@ systemctl enable "${SERVICE_NAME}"
 {
   systemctl start "${SERVICE_NAME}"
 } || {
-  systemctl status rke2-${ROLE}.service
+  systemctl status "rke2-${ROLE}.service"
 }
