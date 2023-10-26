@@ -8,4 +8,8 @@ if [ "$(systemctl is-active "${SERVICE_NAME}")" = "active" ]; then
 fi
 systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
-systemctl start "${SERVICE_NAME}"
+{
+  systemctl start "${SERVICE_NAME}"
+} || {
+  systemctl status rke2-${ROLE}.service
+}
