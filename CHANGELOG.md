@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/rancher/terraform-null-rke2-install/compare/v0.1.1...v0.2.0) (2023-10-25)
+
+
+### Features
+
+* remove variable for rke2 config and rely on local_file_path ([#68](https://github.com/rancher/terraform-null-rke2-install/issues/68)) ([c0ee6b6](https://github.com/rancher/terraform-null-rke2-install/commit/c0ee6b6bff38668e4e57ffb6480fbbcdcf40b369))
+
 ## [0.1.1](https://github.com/rancher/terraform-null-rke2-install/compare/v0.1.0...v0.1.1) (2023-10-19)
 
 
