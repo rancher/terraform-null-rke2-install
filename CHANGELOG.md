@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.0...v0.2.1) (2023-10-26)
+
+
+### Bug Fixes
+
+* expose the error if the service start fails ([#70](https://github.com/rancher/terraform-null-rke2-install/issues/70)) ([3c993b8](https://github.com/rancher/terraform-null-rke2-install/commit/3c993b87f760cf492c55b4027490747165be1f0c))
+
 ## [0.2.0](https://github.com/rancher/terraform-null-rke2-install/compare/v0.1.1...v0.2.0) (2023-10-25)
 
 
