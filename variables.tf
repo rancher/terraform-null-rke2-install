@@ -49,7 +49,7 @@ variable "remote_workspace" {
     The user specified in the ssh_user variable must have read, write, and execute permissions to this directory.
     If left blank "/home/<ssh_user>" will be used.
   EOT
-  default     = ""
+  default     = "~"
 }
 variable "ssh_ip" {
   type        = string

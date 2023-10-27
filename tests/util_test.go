@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	a "github.com/aws/aws-sdk-go/aws"
@@ -28,10 +29,19 @@ func teardown(t *testing.T, directory string, keyPair *aws.Ec2Keypair) {
 	require.NoError(t, err5)
 	err6 := os.RemoveAll(fmt.Sprintf("../examples/%s/terraform.tfstate.backup", directory))
 	require.NoError(t, err6)
-	err7 := os.RemoveAll(fmt.Sprintf("../examples/%s/kubeconfig.yaml", directory))
-	require.NoError(t, err7)
+	rm(t, fmt.Sprintf("../examples/%s/kubeconfig-*.yaml", directory))
+	rm(t, fmt.Sprintf("../examples/%s/tf-*", directory))
 
 	aws.DeleteEC2KeyPair(t, keyPair)
+}
+
+func rm(t *testing.T, path string) {
+	files, err := filepath.Glob(path)
+	require.NoError(t, err)
+	for _, file := range files {
+		err2 := os.RemoveAll(file)
+		require.NoError(t, err2)
+	}
 }
 
 func setup(t *testing.T, directory string, region string, owner string, terraformVars map[string]interface{}) (*terraform.Options, *aws.Ec2Keypair) {
