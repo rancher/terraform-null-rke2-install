@@ -6,7 +6,7 @@ locals {
   identifier          = var.identifier
   local_file_path     = var.local_file_path
   local_path          = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
-  remote_workspace    = (var.remote_workspace == "" ? "/home/${local.ssh_user}" : var.remote_workspace)
+  remote_workspace    = ((var.remote_workspace == "~" || var.remote_workspace == "") ? "/home/${local.ssh_user}" : var.remote_workspace) # https://github.com/hashicorp/terraform/issues/30243
   remote_path         = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
   retrieve_kubeconfig = var.retrieve_kubeconfig
   install_method      = var.install_method
