@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+env:
+  TERRAFORM_VERSION: 1.5.7
 
 jobs:
   terraform:
@@ -11,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: 1.5.7
-        with_wrapper: false
+        terraform_version: ${{env.TERRAFORM_VERSION}}
+        terraform_wrapper: false
 
     - name: Init Basic
       run: cd examples/basic && terraform init -upgrade
