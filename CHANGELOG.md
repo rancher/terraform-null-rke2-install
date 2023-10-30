@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.2...v0.2.3) (2023-10-30)
+
+
+### Bug Fixes
+
+* systemctl can form an endless loop, use poll with timeout instead ([#74](https://github.com/rancher/terraform-null-rke2-install/issues/74)) ([76fa666](https://github.com/rancher/terraform-null-rke2-install/commit/76fa666fed3a57131c374794e4eed6f8fd6a7ad7))
+
 ## [0.2.2](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.1...v0.2.2) (2023-10-27)
 
 
