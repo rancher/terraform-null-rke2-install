@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.4...v0.2.5) (2023-10-30)
+
+
+### Bug Fixes
+
+* remove json conversion ([#78](https://github.com/rancher/terraform-null-rke2-install/issues/78)) ([ee597f3](https://github.com/rancher/terraform-null-rke2-install/commit/ee597f3ef42fdfdab2212e5df250bb1f7d036cb4))
+
 ## [0.2.4](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.3...v0.2.4) (2023-10-30)
 
 
