@@ -44,7 +44,7 @@ jobs:
           aws-region: ${{env.AWS_REGION}}
 
       - uses: actions/checkout@v4
-        if: ${{ fromJson(steps.release-please.outputs.pr).number }} != null
+        if: steps.release-please.outputs.pr
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -54,7 +54,7 @@ jobs:
           terraform_wrapper: false
 
       - name: 'Run Terratest'
-        if: ${{ steps.release-please.outputs.pr }}
+        if: steps.release-please.outputs.pr
         run: cd ./tests && go test -v -timeout=40m -parallel=10
 
       - name: 'Report Success'
