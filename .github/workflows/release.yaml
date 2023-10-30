@@ -24,10 +24,11 @@ jobs:
         uses: google-github-actions/release-please-action@v3
         with:
           release-type: terraform-module
-          pull-request-title-pattern: "chore${scope}: release${component} ${version} [skip ci]"
+          pull-request-title-pattern: "chore${scope}: release${component} ${version}"
 
       - name: 'Remind to wait'
         uses: peter-evans/create-or-update-comment@v3
+        if: ${{ fromJson(steps.release-please.outputs.pr).number }} != null
         with:
           issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
           body: |
@@ -36,24 +37,29 @@ jobs:
 
       - name: 'Configure AWS credentials'
         uses: aws-actions/configure-aws-credentials@v4
+        if: ${{ fromJson(steps.release-please.outputs.pr).number }} != null
         with:
           role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
           aws-region: ${{env.AWS_REGION}}
 
       - uses: actions/checkout@v4
+        if: ${{ fromJson(steps.release-please.outputs.pr).number }} != null
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        if: ${{ fromJson(steps.release-please.outputs.pr).number }} != null
         with:
           terraform_version: ${{env.TERRAFORM_VERSION}}
           terraform_wrapper: false
 
       - name: 'Run Terratest'
+        if: ${{ fromJson(steps.release-please.outputs.pr).number }} != null
         run: cd ./tests && go test -v -timeout=40m -parallel=10
 
       - name: 'Report Success'
         uses: peter-evans/create-or-update-comment@v3
+        if: ${{ fromJson(steps.release-please.outputs.pr).number }} != null
         with:
           issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
           body: |
