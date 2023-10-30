@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.3...v0.2.4) (2023-10-30)
+
+
+### Bug Fixes
+
+* skip e2e tests if no pr generated ([#76](https://github.com/rancher/terraform-null-rke2-install/issues/76)) ([8a4d533](https://github.com/rancher/terraform-null-rke2-install/commit/8a4d533310bee3a3a1ad671b6577c89fb0e60646))
+
 ## [0.2.3](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.2...v0.2.3) (2023-10-30)
 
 
