@@ -57,7 +57,8 @@ jobs:
         if: steps.release-please.outputs.pr
         run: cd ./tests && go test -v -timeout=40m -parallel=10
         env:
-          GITHUB_TOKEN: $${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_OWNER: ${{github.repository_owner}}
 
       - name: 'Report Success'
         uses: peter-evans/create-or-update-comment@v3
