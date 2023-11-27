@@ -12,6 +12,8 @@ locals {
   install_method      = var.install_method
   server_prep_script  = var.server_prep_script
   start               = var.start
+  extra_files         = var.generated_files
+  local_files         = toset(concat(tolist(fileset(local.local_path, "*")), local.extra_files))
 }
 
 # this module assumes that any *.yaml files in the path are meant to be copied to the config directory
@@ -22,7 +24,7 @@ locals {
 
 # this should track files that don't exist until apply time
 resource "local_file" "files_source" {
-  for_each             = fileset(local.local_path, "*")
+  for_each             = local.local_files
   source               = "${local.local_path}/${each.key}"
   filename             = "${abspath(path.root)}/tmp/${each.key}"
   file_permission      = 0755
@@ -34,7 +36,7 @@ resource "local_file" "files_md5" {
   depends_on = [
     local_file.files_source,
   ]
-  for_each             = fileset(local.local_path, "*")
+  for_each             = local.local_files
   content              = filemd5("${local.local_path}/${each.key}")
   filename             = "${abspath(path.root)}/tmp/${each.key}.md5"
   file_permission      = 0755
