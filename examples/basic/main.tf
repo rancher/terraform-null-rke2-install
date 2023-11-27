@@ -12,7 +12,7 @@ locals {
 # selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner
 module "aws_access" {
   source              = "rancher/access/aws"
-  version             = "v0.0.8"
+  version             = "v0.1.0"
   owner               = local.email
   vpc_name            = "default"
   subnet_name         = "default"
@@ -24,7 +24,7 @@ module "aws_access" {
 module "aws_server" {
   depends_on          = [module.aws_access]
   source              = "rancher/server/aws"
-  version             = "v0.0.16"
+  version             = "v0.1.0"
   image               = "sles-15" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
   owner               = local.email
   name                = local.name
@@ -87,10 +87,11 @@ module "basic_install" {
     null_resource.write_config,
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  # version = "v0.0.8" # when using this example you will need to set the version
+  # version = "v0.2.7" # when using this example you will need to set the version
   ssh_ip          = module.aws_server.public_ip
   ssh_user        = local.username
   identifier      = module.aws_server.id
   release         = local.rke2_version
   local_file_path = module.download.path
+  generated_files = ["50-initial-generated-config.yaml"]
 }
