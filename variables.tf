@@ -38,7 +38,7 @@ variable "remote_file_path" {
       "sha256sum-<arch>.txt",
       "install.sh",
     The user specified in the ssh_user variable must have read and write permissions to this directory.
-    The default value is "/home/<ssh_user>/rke2".
+    If left blank "/home/<ssh_user>/rke2" will be used.
   EOT
   default     = ""
 }
@@ -50,6 +50,16 @@ variable "remote_workspace" {
     If left blank "/home/<ssh_user>" will be used.
   EOT
   default     = "~"
+}
+variable "generated_files" {
+  type        = list(string)
+  description = <<-EOT
+    This is a list of file names that are expected to appear in the local_file_path.
+    These files are generated at apply time, presumably in other modules, so they need to be tracked differently than the default (which runs at compile time).
+    If files that are generated are not added here, the plan phase may always show a change, and apply may always attempt to install the "new" file.
+    If using the config module (terraform-local-rke2-config), you should add the output file to this list ("50-initial-generated-config.yaml" by default).
+  EOT
+  default     = []
 }
 variable "ssh_ip" {
   type        = string
