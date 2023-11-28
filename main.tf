@@ -20,9 +20,7 @@ locals {
 # we don't want to manage the files in case the user is managing them with another tool
 # we do need to know when the files change so we can run the install script and restart the service
 ## so we use a local_file data source to track tmp files that are created from the local_file_path
-# if a local path was not provided we don't need to track anything
 
-# this should track files that don't exist until apply time
 resource "local_file" "files_source" {
   for_each             = local.local_files
   source               = "${local.local_path}/${each.key}"
@@ -31,26 +29,12 @@ resource "local_file" "files_source" {
   directory_permission = 0755
 }
 
-# this is only for tracking changes to files that already exist
-resource "local_file" "files_md5" {
-  depends_on = [
-    local_file.files_source,
-  ]
-  for_each             = local.local_files
-  content              = filemd5("${local.local_path}/${each.key}")
-  filename             = "${abspath(path.root)}/tmp/${each.key}.md5"
-  file_permission      = 0755
-  directory_permission = 0755
-}
-
 # if local path specified copy all files and folders to the remote_path directory
 resource "null_resource" "copy_to_remote" {
   depends_on = [
-    local_file.files_md5,
     local_file.files_source,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5[*]),
     files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
@@ -77,12 +61,10 @@ resource "null_resource" "copy_to_remote" {
 }
 resource "null_resource" "configure" {
   depends_on = [
-    local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5[*]),
     files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
@@ -111,13 +93,11 @@ resource "null_resource" "configure" {
 # run the install script, which may upgrade rke2 if it is already installed
 resource "null_resource" "install" {
   depends_on = [
-    local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5[*]),
     files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
@@ -148,7 +128,6 @@ resource "null_resource" "install" {
 resource "null_resource" "prep" {
   count = (local.server_prep_script == "" ? 0 : 1)
   depends_on = [
-    local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
@@ -184,7 +163,6 @@ resource "null_resource" "prep" {
 resource "null_resource" "start" {
   count = (local.start == true ? 1 : 0)
   depends_on = [
-    local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
@@ -192,7 +170,6 @@ resource "null_resource" "start" {
     null_resource.prep,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5[*]),
     files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
@@ -221,7 +198,6 @@ resource "null_resource" "start" {
 resource "null_resource" "get_kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
@@ -230,7 +206,6 @@ resource "null_resource" "get_kubeconfig" {
     null_resource.prep,
   ]
   triggers = {
-    files_md5 = jsonencode(local_file.files_md5[*]),
     files_src = jsonencode(local_file.files_source[*]),
     release   = local.release,
     id        = local.identifier,
@@ -268,7 +243,6 @@ resource "null_resource" "get_kubeconfig" {
 data "local_file" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    local_file.files_md5,
     local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
