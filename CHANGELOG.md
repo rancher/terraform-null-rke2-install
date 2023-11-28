@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.7](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.6...v0.2.7) (2023-11-28)
+
+
+### Bug Fixes
+
+* add generated files to track files generated in other modules ([#82](https://github.com/rancher/terraform-null-rke2-install/issues/82)) ([fa3bca9](https://github.com/rancher/terraform-null-rke2-install/commit/fa3bca923e403a5dae894662d7286448446b23f7))
+* add owner to workflow and skip github .42 ([#85](https://github.com/rancher/terraform-null-rke2-install/issues/85)) ([6b6d2cc](https://github.com/rancher/terraform-null-rke2-install/commit/6b6d2cc9f8e2beb7cd892f15df7dd1afea94a122))
+* remove the md5 file hash ([#86](https://github.com/rancher/terraform-null-rke2-install/issues/86)) ([9702810](https://github.com/rancher/terraform-null-rke2-install/commit/9702810df38e6964aa572bd4d43c6e90c4381986))
+* upgrade examples and add github token to workflow ([#84](https://github.com/rancher/terraform-null-rke2-install/issues/84)) ([87a4c03](https://github.com/rancher/terraform-null-rke2-install/commit/87a4c03729093d452e38a7f596a0cda18c34e174))
+
 ## [0.2.6](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.5...v0.2.6) (2023-10-30)
 
 
