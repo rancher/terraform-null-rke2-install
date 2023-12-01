@@ -5,18 +5,22 @@ terraform {
       source  = "hashicorp/local"
       version = ">= 2.4"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.2"
+    }
     random = {
       source  = "hashicorp/random"
       version = ">= 3.5.1"
     }
-    # NOTE: this is only required for the examples
-    # this is used by the aws_access and aws_server modules
+    github = {
+      source  = "integrations/github"
+      version = ">= 5.32, < 5.42" # 5.42 introduced a bug which disallows our token
+    }
     aws = {
       source  = "hashicorp/aws"
       version = ">= 5.11"
     }
-    # NOTE: this is only required for the examples
-    # this is used by the aws_access module
     http = {
       source  = "hashicorp/http"
       version = ">= 3.4"
