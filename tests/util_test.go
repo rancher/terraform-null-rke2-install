@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/google/go-github/v53/github"
 	aws "github.com/gruntwork-io/terratest/modules/aws"
-	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 )
@@ -44,11 +43,10 @@ func rm(t *testing.T, path string) {
 	}
 }
 
-func setup(t *testing.T, directory string, region string, owner string, terraformVars map[string]interface{}) (*terraform.Options, *aws.Ec2Keypair) {
-	uniqueID := random.UniqueId()
+func setup(t *testing.T, directory string, region string, owner string, id string, terraformVars map[string]interface{}) (*terraform.Options, *aws.Ec2Keypair) {
 
 	// Create an EC2 KeyPair that we can use for SSH access
-	keyPairName := fmt.Sprintf("terraform-aws-server-test-%s-%s", directory, uniqueID)
+	keyPairName := fmt.Sprintf("terraform-aws-server-test-%s-%s", directory, id)
 	keyPair := aws.CreateAndImportEC2KeyPair(t, region, keyPairName)
 
 	// tag the key pair so we can find in the access module
@@ -65,7 +63,7 @@ func setup(t *testing.T, directory string, region string, owner string, terrafor
 
 	terraformVars["key_name"] = keyPairName
 	terraformVars["key"] = keyPair.KeyPair.PublicKey
-	terraformVars["identifier"] = uniqueID
+	terraformVars["identifier"] = id
 
 	retryableTerraformErrors := map[string]string{
 		// The reason is unknown, but eventually these succeed after a few retries.

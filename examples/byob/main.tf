@@ -1,18 +1,29 @@
+
+# the GITHUB_TOKEN environment variable must be set for this example to work
+provider "github" {}
+
+provider "aws" {
+  default_tags {
+    tags = {
+      ID = local.identifier
+    }
+  }
+}
+
 locals {
   email          = "terraform-ci@suse.com"
   identifier     = var.identifier
   name           = "tf-rke2-install-byob-${local.identifier}"
   username       = "tf-${local.identifier}"
-  rke2_version   = var.rke2_version # I want ci to be able to get the latest version of rke2 to test
-  public_ssh_key = var.key          # I don't normally recommend using variables in root modules, but it allows tests to supply their own key
-  key_name       = var.key_name     # A lot of troubleshooting during critical times can be saved by hard coding variables in root modules
-  # root modules should be secured properly (including the state), and should represent your running infrastructure
+  rke2_version   = var.rke2_version
+  public_ssh_key = var.key
+  key_name       = var.key_name
+  config = ( can(file("${path.root}/rke2/rke2-config.yaml")) ? file("${path.root}/rke2/rke2-config.yaml") : "")
 }
 
-# selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner
 module "aws_access" {
   source              = "rancher/access/aws"
-  version             = "v0.1.0"
+  version             = "v0.1.1"
   owner               = local.email
   vpc_name            = "default"
   subnet_name         = "default"
@@ -46,6 +57,11 @@ module "TestByob" {
   local_file_path = "${abspath(path.root)}/rke2"
   ssh_ip          = module.aws_server.public_ip
   ssh_user        = local.username
-  identifier      = module.aws_server.id
   release         = local.rke2_version
+  identifier      = md5(join("-",[
+    # if any of these things change, redeploy rke2
+    module.aws_server.id,
+    local.rke2_version,
+    local.config,
+  ]))
 }
