@@ -12,7 +12,7 @@ provider "aws" {
 locals {
   email          = "terraform-ci@suse.com"
   identifier     = var.identifier
-  name           = "tf-rke2-${local.identifier}"
+  name           = "tf-install-nostart-${local.identifier}"
   username       = "tf-${local.identifier}"
   file_path      = "tf-${local.identifier}"
   extra_config   = file("${abspath(path.root)}/config.yaml")
