@@ -4,57 +4,70 @@ on:
   pull_request:
     branches:
       - main
-env:
-  TERRAFORM_VERSION: 1.5.7
 
 jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@main
+    - run: sudo install -d /nix/store
+    - name: 'Restore Nix Store Cache'
+      id: cache-nix-store-restore
+      uses: actions/cache/restore@v3
       with:
-        terraform_version: ${{env.TERRAFORM_VERSION}}
-        terraform_wrapper: false
+        path: /nix/store
+        key: nixstore
+    - uses: nicknovitski/nix-develop@v1
+    - name: 'Cache Nix Store'
+      id: cache-nix-store-save
+      uses: actions/cache/save@v3
+      with:
+        path: /nix/store
+        key: ${{ steps.cache-nix-store-restore.outputs.cache-primary-key }}
+    - name: 'Restore Terraform Cache'
+      id: cache-terraform-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: ${{ github.workspace }}/.terraform
+        key: terraform
+    - run: terraform init -upgrade
+    - name: 'Cache Terraform'
+      id: cache-terraform-save
+      uses: actions/cache/save@v3
+      with:
+        path: ${{ github.workspace }}/.terraform
+        key: ${{ steps.cache-terraform-restore.outputs.cache-primary-key }}
+    - run: cd examples/basic && terraform version && terraform init -upgrade && terraform validate
 
-    - name: Init Basic
-      run: cd examples/basic && terraform init -upgrade
-
-    - name: Validate Basic
-      run: cd examples/basic && terraform validate
+  actionlint:
+    name: 'Lint Workflows'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - uses: nicknovitski/nix-develop@v1
+    - run: actionlint
 
   tflint:
     name: 'TFLint'
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - uses: terraform-linters/setup-tflint@v3
-      name: Setup TFLint
+    - uses: actions/checkout@v4
+    - uses: terraform-linters/setup-tflint@v4
       with:
         tflint_version: latest
-
-    - name: Show version
-      run: tflint --version
-
-    - name: Init TFLint
-      run: tflint --init
-
-    - name: Run TFLint
-      run: tflint -f compact
+    - run: tflint --version
+    - run: tflint --init
+    - run: tflint -f compact
 
   shellcheck:
     name: Shellcheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+      - uses: ludeeus/action-shellcheck@master
 
   validate-commit-message:
     name: Validate Commit Message
