@@ -12,31 +12,11 @@ locals {
   install_method      = var.install_method
   server_prep_script  = var.server_prep_script
   start               = var.start
-  extra_files         = var.generated_files
-  local_files         = toset(concat(tolist(fileset(local.local_path, "*")), local.extra_files))
-}
-
-# this module assumes that any *.yaml files in the path are meant to be copied to the config directory
-# we don't want to manage the files in case the user is managing them with another tool
-# we do need to know when the files change so we can run the install script and restart the service
-## so we use a local_file data source to track tmp files that are created from the local_file_path
-
-resource "local_file" "files_source" {
-  for_each             = local.local_files
-  source               = "${local.local_path}/${each.key}"
-  filename             = "${abspath(path.root)}/tmp/${each.key}"
-  file_permission      = 0755
-  directory_permission = 0755
 }
 
 # if local path specified copy all files and folders to the remote_path directory
 resource "null_resource" "copy_to_remote" {
-  depends_on = [
-    local_file.files_source,
-  ]
   triggers = {
-    files_src = jsonencode(local_file.files_source[*]),
-    release   = local.release,
     id        = local.identifier,
   }
   connection {
@@ -61,12 +41,9 @@ resource "null_resource" "copy_to_remote" {
 }
 resource "null_resource" "configure" {
   depends_on = [
-    local_file.files_source,
     null_resource.copy_to_remote,
   ]
   triggers = {
-    files_src = jsonencode(local_file.files_source[*]),
-    release   = local.release,
     id        = local.identifier,
   }
   connection {
@@ -93,13 +70,10 @@ resource "null_resource" "configure" {
 # run the install script, which may upgrade rke2 if it is already installed
 resource "null_resource" "install" {
   depends_on = [
-    local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
   ]
   triggers = {
-    files_src = jsonencode(local_file.files_source[*]),
-    release   = local.release,
     id        = local.identifier,
   }
   connection {
@@ -128,13 +102,11 @@ resource "null_resource" "install" {
 resource "null_resource" "prep" {
   count = (local.server_prep_script == "" ? 0 : 1)
   depends_on = [
-    local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
     null_resource.install,
   ]
   triggers = {
-    release = local.release,
     id      = local.identifier,
     script  = local.server_prep_script,
   }
@@ -163,15 +135,12 @@ resource "null_resource" "prep" {
 resource "null_resource" "start" {
   count = (local.start == true ? 1 : 0)
   depends_on = [
-    local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
     null_resource.install,
     null_resource.prep,
   ]
   triggers = {
-    files_src = jsonencode(local_file.files_source[*]),
-    release   = local.release,
     id        = local.identifier,
   }
   connection {
@@ -198,7 +167,6 @@ resource "null_resource" "start" {
 resource "null_resource" "get_kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
     null_resource.install,
@@ -206,8 +174,6 @@ resource "null_resource" "get_kubeconfig" {
     null_resource.prep,
   ]
   triggers = {
-    files_src = jsonencode(local_file.files_source[*]),
-    release   = local.release,
     id        = local.identifier,
   }
   connection {
@@ -243,7 +209,6 @@ resource "null_resource" "get_kubeconfig" {
 data "local_file" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    local_file.files_source,
     null_resource.copy_to_remote,
     null_resource.configure,
     null_resource.install,
