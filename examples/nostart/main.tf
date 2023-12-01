@@ -1,3 +1,14 @@
+# the GITHUB_TOKEN environment variable must be set for this example to work
+provider "github" {}
+
+provider "aws" {
+  default_tags {
+    tags = {
+      ID = local.identifier
+    }
+  }
+}
+
 locals {
   email          = "terraform-ci@suse.com"
   identifier     = var.identifier
@@ -16,7 +27,7 @@ resource "random_uuid" "join_token" {}
 # selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner
 module "aws_access" {
   source              = "rancher/access/aws"
-  version             = "v0.1.0"
+  version             = "v0.1.1"
   owner               = local.email
   vpc_name            = "default"
   subnet_name         = "default"
@@ -48,41 +59,13 @@ module "config" {
     module.aws_server,
   ]
   source            = "rancher/rke2-config/local"
-  version           = "v0.1.0"
+  version           = "v0.1.1"
   token             = random_uuid.join_token.result
   advertise-address = module.aws_server.private_ip
   tls-san           = [module.aws_server.public_ip, module.aws_server.private_ip]
   node-external-ip  = [module.aws_server.public_ip]
   node-ip           = [module.aws_server.private_ip]
-}
-
-resource "null_resource" "write_config" {
-  depends_on = [
-    module.aws_access,
-    module.aws_server,
-    module.config,
-  ]
-  for_each = toset(["${local.file_path}/50-initial-generated-config.yaml"])
-  triggers = {
-    config_content = module.config.yaml_config,
-  }
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -e
-      set -x
-      install -d "${local.file_path}"
-      cat << 'EOF' > "${each.key}"
-      ${module.config.yaml_config}
-      EOF
-      chmod 0600 "${each.key}"
-    EOT
-  }
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-      rm -f "${each.key}"
-    EOT
-  }
+  local_file_path = local.file_path
 }
 
 resource "null_resource" "write_extra_config" {
@@ -120,19 +103,23 @@ module "install_without_starting" {
     module.aws_access,
     module.aws_server,
     module.config,
-    null_resource.write_config,
     null_resource.write_extra_config,
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   # version = "v0.2.7" # when using this example you will need to set the version
   ssh_ip             = module.aws_server.public_ip
   ssh_user           = local.username
-  identifier         = module.aws_server.id
   release            = local.rke2_version
   install_method     = "rpm"
   local_file_path    = local.file_path
   remote_workspace   = module.aws_server.workfolder
   server_prep_script = local.prep_script
   start              = false
-  generated_files = ["50-initial-generated-config.yaml","51-extra-config.yaml"]
+  identifier      = md5(join("-",[
+    # if any of these things change, reinstall rke2
+    module.aws_server.id,
+    local.rke2_version,
+    local.extra_config,
+    module.config.yaml_config,
+  ]))
 }

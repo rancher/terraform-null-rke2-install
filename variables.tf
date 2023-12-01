@@ -51,16 +51,6 @@ variable "remote_workspace" {
   EOT
   default     = "~"
 }
-variable "generated_files" {
-  type        = list(string)
-  description = <<-EOT
-    This is a list of file names that are expected to appear in the local_file_path.
-    These files are generated at apply time, presumably in other modules, so they need to be tracked differently than the default (which runs at compile time).
-    If files that are generated are not added here, the plan phase may always show a change, and apply may always attempt to install the "new" file.
-    If using the config module (terraform-local-rke2-config), you should add the output file to this list ("50-initial-generated-config.yaml" by default).
-  EOT
-  default     = []
-}
 variable "ssh_ip" {
   type        = string
   description = <<-EOT
@@ -82,10 +72,10 @@ variable "ssh_user" {
 variable "identifier" {
   type        = string
   description = <<-EOT
-    A unique identifier for the server to install RKE2 on.
-    This is used to align the resources in this module with your server lifecycle.
+    A unique identifier for the resources in this module.
     If this value is changed, the resources will be recreated.
-    This allows you to manage your server lifecycle separate from your RKE2 lifecycle.
+    This value is the only trigger for recreating resources,
+      use it to upgrade or manage the rke2 lifecycle.
   EOT
 }
 variable "retrieve_kubeconfig" {

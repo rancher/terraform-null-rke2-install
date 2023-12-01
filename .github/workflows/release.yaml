@@ -7,61 +7,80 @@ on:
 
 env:
   AWS_REGION: us-west-1
-  TERRAFORM_VERSION: 1.5.7
+  AWS_ROLE: arn:aws:iam::270074865685:role/terraform-module-ci-test
 
-permissions:
-  id-token: write
-  contents: write
-  pull-requests: write
-  issues: write
+permissions: write-all
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: release-please
+      - uses: google-github-actions/release-please-action@v3
         id: release-please
-        uses: google-github-actions/release-please-action@v3
         with:
           release-type: terraform-module
           pull-request-title-pattern: "chore${scope}: release${component} ${version}"
-
-      - name: 'Remind to wait'
-        uses: peter-evans/create-or-update-comment@v3
+      - uses: peter-evans/create-or-update-comment@v3
+        name: 'Remind to wait'
         if: steps.release-please.outputs.pr
         with:
           issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
           body: |
             Please make sure e2e tests pass before merging this PR!
             ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-      - name: 'Configure AWS credentials'
-        uses: aws-actions/configure-aws-credentials@v4
-        if: steps.release-please.outputs.pr
-        with:
-          role-to-assume: arn:aws:iam::270074865685:role/terraform-module-ci-test
-          role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
-          aws-region: ${{env.AWS_REGION}}
-
       - uses: actions/checkout@v4
         if: steps.release-please.outputs.pr
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+      - uses: DeterminateSystems/nix-installer-action@main
+        if: steps.release-please.outputs.pr
+      - name: 'Restore Nix Store Cache'
+        if: steps.release-please.outputs.pr
+        id: cache-nix-store-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: /nix/store
+          key: nixstore
+      - uses: nicknovitski/nix-develop@v1
+        if: steps.release-please.outputs.pr
+      - name: 'Cache Nix Store'
+        if: steps.release-please.outputs.pr
+        id: cache-nix-store-save
+        uses: actions/cache/save@v3
+        with:
+          path: /nix/store
+          key: ${{ steps.cache-nix-store-restore.outputs.cache-primary-key }}
+      - uses: aws-actions/configure-aws-credentials@v4
         if: steps.release-please.outputs.pr
         with:
-          terraform_version: ${{env.TERRAFORM_VERSION}}
-          terraform_wrapper: false
-
-      - name: 'Run Terratest'
+          role-to-assume: ${{env.AWS_ROLE}}
+          role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
+          aws-region: ${{env.AWS_REGION}}
+      - name: 'Restore Terraform Cache'
         if: steps.release-please.outputs.pr
-        run: cd ./tests && go test -v -timeout=40m -parallel=10
+        id: cache-terraform-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: ${{ github.workspace }}/.terraform
+          key: terraform
+      - run: terraform init -upgrade
+        if: steps.release-please.outputs.pr
+      - name: 'Cache Terraform'
+        if: steps.release-please.outputs.pr
+        id: cache-terraform-save
+        uses: actions/cache/save@v3
+        with:
+          path: ${{ github.workspace }}/.terraform
+          key: ${{ steps.cache-terraform-restore.outputs.cache-primary-key }}
+      - run: cd ./tests && go test -v -timeout=40m -parallel=10
+        name: 'Terratest'
+        if: steps.release-please.outputs.pr
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          GITHUB_OWNER: ${{github.repository_owner}}
-
-      - name: 'Report Success'
-        uses: peter-evans/create-or-update-comment@v3
+          GITHUB_OWNER: rancher
+          IDENTIFIER: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
+      - uses: peter-evans/create-or-update-comment@v3
+        name: 'Report Success'
         if: steps.release-please.outputs.pr
         with:
           issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
