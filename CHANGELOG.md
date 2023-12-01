@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.7...v0.3.0) (2023-12-01)
+
+
+### Features
+
+* rely on identifier for rke2 lifecycle rather than detecting fil… ([#87](https://github.com/rancher/terraform-null-rke2-install/issues/87)) ([2b83ba1](https://github.com/rancher/terraform-null-rke2-install/commit/2b83ba11745339629228d44ec00631f23af584aa))
+
+
+### Bug Fixes
+
+* make sure names are unique ([#89](https://github.com/rancher/terraform-null-rke2-install/issues/89)) ([eebfe81](https://github.com/rancher/terraform-null-rke2-install/commit/eebfe81e183080d66684e4f1b806e481994577f6))
+
 ## [0.2.7](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.6...v0.2.7) (2023-11-28)
 
 
