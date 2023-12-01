@@ -13,7 +13,7 @@ provider "aws" {
 locals {
   email          = "terraform-ci@suse.com"
   identifier     = var.identifier
-  name           = "tf-rke2-install-byob-${local.identifier}"
+  name           = "tf-install-byob-${local.identifier}"
   username       = "tf-${local.identifier}"
   rke2_version   = var.rke2_version
   public_ssh_key = var.key
