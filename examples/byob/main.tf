@@ -1,7 +1,4 @@
 
-# the GITHUB_TOKEN environment variable must be set for this example to work
-provider "github" {}
-
 provider "aws" {
   default_tags {
     tags = {
