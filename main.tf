@@ -12,12 +12,13 @@ locals {
   install_method      = var.install_method
   server_prep_script  = var.server_prep_script
   start               = var.start
+  start_timeout       = var.start_timeout
 }
 
 # if local path specified copy all files and folders to the remote_path directory
 resource "null_resource" "copy_to_remote" {
   triggers = {
-    id        = local.identifier,
+    id = local.identifier,
   }
   connection {
     type        = "ssh"
@@ -44,7 +45,7 @@ resource "null_resource" "configure" {
     null_resource.copy_to_remote,
   ]
   triggers = {
-    id        = local.identifier,
+    id = local.identifier,
   }
   connection {
     type        = "ssh"
@@ -74,7 +75,7 @@ resource "null_resource" "install" {
     null_resource.configure,
   ]
   triggers = {
-    id        = local.identifier,
+    id = local.identifier,
   }
   connection {
     type        = "ssh"
@@ -107,8 +108,8 @@ resource "null_resource" "prep" {
     null_resource.install,
   ]
   triggers = {
-    id      = local.identifier,
-    script  = local.server_prep_script,
+    id     = local.identifier,
+    script = local.server_prep_script,
   }
   connection {
     type        = "ssh"
@@ -141,7 +142,7 @@ resource "null_resource" "start" {
     null_resource.prep,
   ]
   triggers = {
-    id        = local.identifier,
+    id = local.identifier,
   }
   connection {
     type        = "ssh"
@@ -159,7 +160,7 @@ resource "null_resource" "start" {
       set -x
       set -e
       sudo chmod +x ${local.remote_workspace}/start.sh
-      sudo ${local.remote_workspace}/start.sh "${local.role}"
+      sudo ${local.remote_workspace}/start.sh "${local.role}" "${local.start_timeout}"
     EOT
     ]
   }
@@ -174,7 +175,7 @@ resource "null_resource" "get_kubeconfig" {
     null_resource.prep,
   ]
   triggers = {
-    id        = local.identifier,
+    id = local.identifier,
   }
   connection {
     type        = "ssh"
