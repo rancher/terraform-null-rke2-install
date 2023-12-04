@@ -125,5 +125,5 @@ variable "start_timeout" {
     The number of minutes to wait for rke2 to start.
     This defaults to '2' which will translate to 2 minutes / 120 seconds.
   EOT
-  default     = "2"
+  default     = "5"
 }
