@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/rancher/terraform-null-rke2-install/compare/v0.3.0...v0.3.1) (2023-12-04)
+
+
+### Bug Fixes
+
+* allow setting start timeout ([#90](https://github.com/rancher/terraform-null-rke2-install/issues/90)) ([53988d3](https://github.com/rancher/terraform-null-rke2-install/commit/53988d39342ed065bc3b679a9116a205dabdaf31))
+* increase start timeout default ([#92](https://github.com/rancher/terraform-null-rke2-install/issues/92)) ([400d77f](https://github.com/rancher/terraform-null-rke2-install/commit/400d77f1f12d40cfaadb99196837d2f046e9f4f4))
+
 ## [0.3.0](https://github.com/rancher/terraform-null-rke2-install/compare/v0.2.7...v0.3.0) (2023-12-01)
 
 
