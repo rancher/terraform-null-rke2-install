@@ -34,27 +34,10 @@
         "type": "github"
       }
     },
-    "nixpkgs-terraform": {
-      "locked": {
-        "lastModified": 1694118906,
-        "narHash": "sha256-XN5GagDT6y+5/+ztPzCn2h0HyWEsyJPZwJrMhmnRPmM=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "39ed4b64ba5929e8e9221d06b719a758915e619b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "39ed4b64ba5929e8e9221d06b719a758915e619b",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs",
-        "nixpkgs-terraform": "nixpkgs-terraform"
+        "nixpkgs": "nixpkgs"
       }
     },
     "systems": {
