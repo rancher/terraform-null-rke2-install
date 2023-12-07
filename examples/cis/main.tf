@@ -64,7 +64,7 @@ module "config" {
   tls-san           = [module.aws_server.public_ip, module.aws_server.private_ip]
   node-external-ip  = [module.aws_server.public_ip]
   node-ip           = [module.aws_server.private_ip]
-  local_file_path = local.file_path
+  local_file_path   = local.file_path
 }
 
 resource "null_resource" "write_extra_config" {
@@ -114,7 +114,7 @@ module "TestRpm" {
   local_file_path     = local.file_path
   remote_workspace    = module.aws_server.workfolder
   server_prep_script  = local.prep_script
-  identifier      = md5(join("-",[
+  identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.aws_server.id,
     local.rke2_version,

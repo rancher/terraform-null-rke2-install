@@ -8,6 +8,7 @@ on:
 env:
   AWS_REGION: us-west-1
   AWS_ROLE: arn:aws:iam::270074865685:role/terraform-module-ci-test
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
 permissions: write-all
 
@@ -31,48 +32,67 @@ jobs:
         if: steps.release-please.outputs.pr
         with:
           token: ${{secrets.GITHUB_TOKEN}}
+      - run: sudo rm -rf /nix/store
+        if: steps.release-please.outputs.pr
+      - run: sudo install -d /nix/store
+        if: steps.release-please.outputs.pr
+      - run: sudo chown -R "$(whoami)" /nix/store
+        if: steps.release-please.outputs.pr
+      - run: sudo chmod 0755 /nix/store
+        if: steps.release-please.outputs.pr
+      - uses: actions/cache/restore@v3
+        id: cache-nix-restore
+        if: steps.release-please.outputs.pr
+        with:
+          path: /nix/store
+          key: nix-${{ hashFiles('**/flake.lock') }}
       - uses: DeterminateSystems/nix-installer-action@main
         if: steps.release-please.outputs.pr
-      - name: 'Restore Nix Store Cache'
+      - uses: nicknovitski/nix-develop@v1.1.0
         if: steps.release-please.outputs.pr
-        id: cache-nix-store-restore
-        uses: actions/cache/restore@v3
+        with:
+          arguments: |
+            --ignore-environment \
+            --extra-experimental-features nix-command \
+            --extra-experimental-features flakes \
+            --keep HOME \
+            --keep SSH_AUTH_SOCK \
+            --keep GITHUB_TOKEN \
+            --keep AWS_ROLE \
+            --keep AWS_REGION \
+            --keep AWS_DEFAULT_REGION \
+            --keep AWS_ACCESS_KEY_ID \
+            --keep AWS_SECRET_ACCESS_KEY \
+            --keep AWS_SESSION_TOKEN \
+            --keep TERM \
+            ${{ github.workspace }}
+      - uses: actions/cache/save@v3
+        id: cache-nix-save
+        if: steps.release-please.outputs.pr
         with:
           path: /nix/store
-          key: nixstore
-      - uses: nicknovitski/nix-develop@v1
-        if: steps.release-please.outputs.pr
-      - name: 'Cache Nix Store'
-        if: steps.release-please.outputs.pr
-        id: cache-nix-store-save
-        uses: actions/cache/save@v3
-        with:
-          path: /nix/store
-          key: ${{ steps.cache-nix-store-restore.outputs.cache-primary-key }}
+          key: ${{ steps.cache-nix-restore.outputs.cache-primary-key }}
       - uses: aws-actions/configure-aws-credentials@v4
         if: steps.release-please.outputs.pr
         with:
           role-to-assume: ${{env.AWS_ROLE}}
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
           aws-region: ${{env.AWS_REGION}}
-      - name: 'Restore Terraform Cache'
-        if: steps.release-please.outputs.pr
+      - uses: actions/cache/restore@v3
         id: cache-terraform-restore
-        uses: actions/cache/restore@v3
+        if: steps.release-please.outputs.pr
         with:
           path: ${{ github.workspace }}/.terraform
-          key: terraform
+          key: terraform-${{hashFiles('**/versions.tf','**/main.tf')}}
       - run: terraform init -upgrade
         if: steps.release-please.outputs.pr
-      - name: 'Cache Terraform'
-        if: steps.release-please.outputs.pr
+      - uses: actions/cache/save@v3
         id: cache-terraform-save
-        uses: actions/cache/save@v3
+        if: steps.release-please.outputs.pr
         with:
           path: ${{ github.workspace }}/.terraform
           key: ${{ steps.cache-terraform-restore.outputs.cache-primary-key }}
-      - run: cd ./tests && go test -v -timeout=40m -parallel=10
-        name: 'Terratest'
+      - run: go version && cd ${{github.workspace}}/tests && go test -v -timeout=40m -parallel=10 && cd ${{github.workspace}}
         if: steps.release-please.outputs.pr
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

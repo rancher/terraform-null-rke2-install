@@ -59,13 +59,17 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
+            act
+            actionlint
             bashInteractive
             git
-            tflint
+            gnupg
+            go
+            less
+            openssh
             shellcheck
+            tflint
             tfswitch
-            actionlint
-            act
           ];
           shellHook = ''
             rm -rf "/usr/local/bin/switched-terraform"

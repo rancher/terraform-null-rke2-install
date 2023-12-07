@@ -1,7 +1,6 @@
 # Terraform RKE2 Install
 
-This module installs RKE2 from files on the local workstation or on a remote server.
-If the contents of the files in `local_file_path` change, this module will attempt to install the new files and restart the service.
+This module installs RKE2 on any Linux based server.
 
 ## Requirements
 
@@ -89,6 +88,6 @@ These tools are not necessary, but they can make it much simpler to collaborate.
 
 #### Automated Tests
 
-Our continuous integration tests using the GitHub [ubuntu-latest runner](https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2204-Readme.md) which has many different things installed and does not rely on Nix.
+Our continuous integration uses Nix to ensure a consistent environment.
 
-It also has special integrations with AWS to allow secure authentication, see https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services for more information.
+Our CI has special integrations with AWS to allow secure authentication, see https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services for more information.

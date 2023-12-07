@@ -24,4 +24,12 @@ while [ "$(systemctl is-active "${SERVICE_NAME}")" != "active" ]; do
 done
 echo "${SERVICE_NAME} status is \"$(systemctl is-active "${SERVICE_NAME}")\""
 
+if [ $EXIT -eq 1 ]; then
+  echo "Timed out attempting to start service:"
+  echo "kubelet:"
+  tail /var/lib/rancher/rke2/agent/logs/kubelet.log
+  echo "containerd:"
+  tail /var/lib/rancher/rke2/agent/containerd/containerd.log
+fi
+
 exit $EXIT

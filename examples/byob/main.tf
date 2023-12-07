@@ -15,7 +15,7 @@ locals {
   rke2_version   = var.rke2_version
   public_ssh_key = var.key
   key_name       = var.key_name
-  config = ( can(file("${path.root}/rke2/rke2-config.yaml")) ? file("${path.root}/rke2/rke2-config.yaml") : "")
+  config         = (can(file("${path.root}/rke2/rke2-config.yaml")) ? file("${path.root}/rke2/rke2-config.yaml") : "")
 }
 
 module "aws_access" {
@@ -55,7 +55,7 @@ module "TestByob" {
   ssh_ip          = module.aws_server.public_ip
   ssh_user        = local.username
   release         = local.rke2_version
-  identifier      = md5(join("-",[
+  identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.aws_server.id,
     local.rke2_version,
