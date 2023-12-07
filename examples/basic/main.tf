@@ -56,8 +56,8 @@ module "config" {
   depends_on = [
     module.download,
   ]
-  source  = "rancher/rke2-config/local"
-  version = "v0.1.1"
+  source          = "rancher/rke2-config/local"
+  version         = "v0.1.1"
   local_file_path = module.download.path
 }
 
@@ -76,7 +76,7 @@ module "basic_install" {
   ssh_user        = local.username
   release         = local.rke2_version
   local_file_path = module.download.path
-  identifier      = md5(join("-",[
+  identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.aws_server.id,
     local.rke2_version,
