@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/rancher/terraform-null-rke2-install/compare/v0.3.2...v0.3.3) (2023-12-07)
+
+
+### Bug Fixes
+
+* update workflows, env, and add troubleshooting to example ([#95](https://github.com/rancher/terraform-null-rke2-install/issues/95)) ([0acf8a1](https://github.com/rancher/terraform-null-rke2-install/commit/0acf8a1885e155365b3c933561232848aa1b90a1))
+
 ## [0.3.2](https://github.com/rancher/terraform-null-rke2-install/compare/v0.3.1...v0.3.2) (2023-12-04)
 
 
