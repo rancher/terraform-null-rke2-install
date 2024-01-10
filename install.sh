@@ -11,7 +11,17 @@ if [ "$(systemctl is-active rke2-"${ROLE}".service)" = "active" ]; then
   systemctl stop rke2-"${ROLE}".service
 fi
 
-export INSTALL_RKE2_CHANNEL="${RELEASE}"
+
+if [ "${RELEASE}" == "latest" ]; then
+  export INSTALL_RKE2_CHANNEL="${RELEASE}"
+elif [ "${RELEASE}" == "stable" ]; then
+  export INSTALL_RKE2_CHANNEL="${RELEASE}"
+elif [ "${RELEASE}" == "testing" ]; then
+  export INSTALL_RKE2_CHANNEL="${RELEASE}"
+else
+  export INSTALL_RKE2_VERSION="${RELEASE}"
+fi
+
 export INSTALL_RKE2_METHOD="${INSTALL_METHOD}"
 export INSTALL_RKE2_TYPE="${ROLE}"
 

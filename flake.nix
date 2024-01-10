@@ -62,6 +62,7 @@
             act
             actionlint
             bashInteractive
+            curl
             git
             gnupg
             go
