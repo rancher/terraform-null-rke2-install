@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+	//"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -48,6 +49,7 @@ func setup(t *testing.T, directory string, region string, owner string, id strin
 	// Create an EC2 KeyPair that we can use for SSH access
 	keyPairName := fmt.Sprintf("terraform-aws-server-test-%s-%s", directory, id)
 	keyPair := aws.CreateAndImportEC2KeyPair(t, region, keyPairName)
+	//log.Print(keyPair.KeyPair.PrivateKey)
 
 	// tag the key pair so we can find in the access module
 	client, err1 := aws.NewEc2ClientE(t, region)
