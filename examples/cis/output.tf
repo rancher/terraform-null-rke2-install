@@ -1,4 +1,4 @@
 output "kubeconfig" {
-  value     = module.TestRpm.kubeconfig
+  value     = module.TestCis.kubeconfig
   sensitive = true
 }
