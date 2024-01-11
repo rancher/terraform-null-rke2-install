@@ -20,7 +20,7 @@ locals {
 
 module "aws_access" {
   source              = "rancher/access/aws"
-  version             = "v0.1.1"
+  version             = "v0.1.4"
   owner               = local.email
   vpc_name            = "default"
   subnet_name         = "default"
@@ -32,7 +32,7 @@ module "aws_access" {
 module "aws_server" {
   depends_on          = [module.aws_access]
   source              = "rancher/server/aws"
-  version             = "v0.1.0"
+  version             = "v0.1.1"
   image               = "sles-15" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
   owner               = local.email
   name                = local.name

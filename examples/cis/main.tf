@@ -26,7 +26,7 @@ resource "random_uuid" "join_token" {}
 # selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner
 module "aws_access" {
   source              = "rancher/access/aws"
-  version             = "v0.1.1"
+  version             = "v0.1.4"
   owner               = local.email
   vpc_name            = "default"
   subnet_name         = "default"
@@ -40,7 +40,7 @@ module "aws_server" {
     module.aws_access
   ]
   source              = "rancher/server/aws"
-  version             = "v0.1.0"
+  version             = "v0.1.1"
   image               = "rhel-8-cis" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
   owner               = local.email
   name                = local.name
@@ -97,7 +97,7 @@ resource "null_resource" "write_extra_config" {
 }
 
 # everything before this module is not necessary, you can generate the resources manually or using other methods
-module "TestRpm" {
+module "TestCis" {
   depends_on = [
     module.aws_access,
     module.aws_server,
