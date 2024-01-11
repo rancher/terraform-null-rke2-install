@@ -1,9 +1,23 @@
 variable "release" {
   type        = string
   description = <<-EOT
-    The release channel version of RKE2 to install.
-    This should match the release version of the files in the remote directory.
+    The release version of RKE2 to install.
+    This should be the specific release tag to install.
+    If you loaded your binary in the local file, this must be set and match that version.
+    You can also set "stable" or "latest" here to get the version automatically.
+    The stable and latest versions are dictated by the channels.yaml file in the Rancher/rke2 git repo https://github.com/rancher/rke2/blob/master/channels.yaml.
   EOT
+}
+variable "rpm_channel" {
+  type        = string
+  description = <<-EOT
+    The RPM release channel to install.
+    This should be "stable", "latest", or "testing".
+    This is not necessary unless setting the install_method to "rpm".
+    Occasionally a version will not have a "stable" RPM, this will result in a 404 from downloading artifacts.
+    This will default to "stable" if not set, try setting to "latest" if you encounter problems.
+  EOT
+  default     = ""
 }
 variable "role" {
   type        = string

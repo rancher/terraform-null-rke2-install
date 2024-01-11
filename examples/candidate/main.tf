@@ -14,9 +14,10 @@ locals {
   identifier     = var.identifier
   name           = "tf-install-candidate-${local.identifier}"
   username       = "tf-${local.identifier}"
-  rke2_version   = var.rke2_version # I want ci to be able to get the latest version of rke2 to test
-  public_ssh_key = var.key          # I don't normally recommend using variables in root modules, but it allows tests to supply their own key
-  key_name       = var.key_name     # A lot of troubleshooting during critical times can be saved by hard coding variables in root modules
+  rke2_version   = var.rke2_version
+  rpm_channel    = var.rpm_channel
+  public_ssh_key = var.key
+  key_name       = var.key_name
   # root modules should be secured properly (including the state), and should represent your running infrastructure
 }
 
@@ -49,7 +50,6 @@ module "aws_server" {
 }
 
 # the idea here is to provide the least amount of config necessary to get a cluster up and running
-# if a user wants to provide their own config, they can put it in the local_file_path or supply it as a string
 module "config" {
   depends_on = [
     module.aws_access,
@@ -65,7 +65,6 @@ module "config" {
   local_file_name   = "50-${local.identifier}.yaml"
 }
 
-# everything before this module is not necessary, you can generate the resources manually or use other methods
 module "candidate_install" {
   depends_on = [
     module.aws_access,
@@ -77,6 +76,7 @@ module "candidate_install" {
   ssh_ip             = module.aws_server.public_ip
   ssh_user           = local.username
   release            = local.rke2_version
+  rpm_channel        = local.rpm_channel
   local_file_path    = "${path.root}/rke2"
   install_method     = "rpm"
   server_prep_script = file("${path.root}/prep.sh")

@@ -1,5 +1,6 @@
 locals {
   release             = var.release
+  channel             = var.rpm_channel
   role                = var.role
   ssh_ip              = var.ssh_ip
   ssh_user            = var.ssh_user
@@ -93,7 +94,7 @@ resource "null_resource" "install" {
       set -x
       set -e
       sudo chmod +x "${local.remote_workspace}/install.sh"
-      sudo ${local.remote_workspace}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}"
+      sudo ${local.remote_workspace}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}" "${local.channel}"
     EOT
     ]
   }
