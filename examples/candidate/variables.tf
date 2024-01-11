@@ -10,6 +10,10 @@ variable "rke2_version" {
   type        = string
   description = "The version of rke2 to install, must be a valid tag name like v1.21.6+rke2r1."
 }
+variable "rpm_channel" {
+  type        = string
+  description = "The RPM channel to use, can be 'stable','latest',or 'testing'."
+}
 variable "identifier" {
   type        = string
   description = <<-EOT

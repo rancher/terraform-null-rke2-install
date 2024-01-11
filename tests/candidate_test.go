@@ -18,9 +18,9 @@ func TestCandidate(t *testing.T) {
 	directory := "candidate"
 	region := "us-west-1"
 	owner := "terraform-ci@suse.com"
-	release := "v1.29.0-rc2+rke2r1"
 	terraformVars := map[string]interface{}{
-		"rke2_version": release,
+		"rke2_version": "v1.29.0-rc2+rke2r1",
+		"rpm_channel":  "testing",
 	}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
 
