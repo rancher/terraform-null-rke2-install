@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/rancher/terraform-null-rke2-install/compare/v0.3.3...v0.4.0) (2024-01-11)
+
+
+### Features
+
+* add rpm channel option ([#100](https://github.com/rancher/terraform-null-rke2-install/issues/100)) ([e2703eb](https://github.com/rancher/terraform-null-rke2-install/commit/e2703eb3797eb09a4309e6fd36a66db812980223))
+
+
+### Bug Fixes
+
+* resolve install channel issue and add tests ([#97](https://github.com/rancher/terraform-null-rke2-install/issues/97)) ([3399022](https://github.com/rancher/terraform-null-rke2-install/commit/3399022918889fdc1c1694fd2417d385aadaaf6b))
+* upgrade all the examples and use 'stable' channel for most of them ([#99](https://github.com/rancher/terraform-null-rke2-install/issues/99)) ([fbaead1](https://github.com/rancher/terraform-null-rke2-install/commit/fbaead16072e56ac0154036a19b1343ba4751d44))
+
 ## [0.3.3](https://github.com/rancher/terraform-null-rke2-install/compare/v0.3.2...v0.3.3) (2023-12-07)
 
 
