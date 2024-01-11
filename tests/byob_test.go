@@ -25,7 +25,7 @@ func TestByobConfigChange(t *testing.T) {
 	err1 := os.Mkdir(download_path, 0755)
 	require.NoError(t, err1)
 
-	release := getLatestRelease(t, "rancher", "rke2")
+	release := "stable"
 	terraformVars := map[string]interface{}{
 		"rke2_version": release,
 	}
