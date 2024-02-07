@@ -1,4 +1,4 @@
-name: Release
+name: release
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
         id: release-please
         with:
           release-type: terraform-module
-      - uses: peter-evans/create-or-update-comment@v3
+      - uses: peter-evans/create-or-update-comment@v4
         name: 'Remind to wait'
         if: steps.release-please.outputs.pr
         with:
@@ -32,20 +32,6 @@ jobs:
         if: steps.release-please.outputs.pr
         with:
           token: ${{secrets.GITHUB_TOKEN}}
-      - run: sudo rm -rf /nix/store
-        if: steps.release-please.outputs.pr
-      - run: sudo install -d /nix/store
-        if: steps.release-please.outputs.pr
-      - run: sudo chown -R "$(whoami)" /nix/store
-        if: steps.release-please.outputs.pr
-      - run: sudo chmod 0755 /nix/store
-        if: steps.release-please.outputs.pr
-      - uses: actions/cache/restore@v3
-        id: cache-nix-restore
-        if: steps.release-please.outputs.pr
-        with:
-          path: /nix/store
-          key: nix-${{ hashFiles('**/flake.lock') }}
       - uses: DeterminateSystems/nix-installer-action@main
         if: steps.release-please.outputs.pr
       - uses: nicknovitski/nix-develop@v1.1.0
@@ -64,21 +50,20 @@ jobs:
             --keep AWS_ACCESS_KEY_ID \
             --keep AWS_SECRET_ACCESS_KEY \
             --keep AWS_SESSION_TOKEN \
+            --keep UPDATECLI_GPGTOKEN \
+            --keep UPDATECLI_GITHUB_TOKEN \
+            --keep UPDATECLI_GITHUB_ACTOR \
+            --keep GPG_SIGNING_KEY \
+            --keep NIX_ENV_LOADED \
             --keep TERM \
             ${{ github.workspace }}
-      - uses: actions/cache/save@v3
-        id: cache-nix-save
-        if: steps.release-please.outputs.pr
-        with:
-          path: /nix/store
-          key: ${{ steps.cache-nix-restore.outputs.cache-primary-key }}
       - uses: aws-actions/configure-aws-credentials@v4
         if: steps.release-please.outputs.pr
         with:
           role-to-assume: ${{env.AWS_ROLE}}
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
           aws-region: ${{env.AWS_REGION}}
-      - uses: actions/cache/restore@v3
+      - uses: actions/cache/restore@v4
         id: cache-terraform-restore
         if: steps.release-please.outputs.pr
         with:
@@ -86,7 +71,7 @@ jobs:
           key: terraform-${{hashFiles('**/versions.tf','**/main.tf')}}
       - run: terraform init -upgrade
         if: steps.release-please.outputs.pr
-      - uses: actions/cache/save@v3
+      - uses: actions/cache/save@v4
         id: cache-terraform-save
         if: steps.release-please.outputs.pr
         with:
@@ -98,7 +83,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           GITHUB_OWNER: rancher
           IDENTIFIER: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
-      - uses: peter-evans/create-or-update-comment@v3
+      - uses: peter-evans/create-or-update-comment@v4
         name: 'Report Success'
         if: steps.release-please.outputs.pr
         with:

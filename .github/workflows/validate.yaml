@@ -1,4 +1,4 @@
-name: Tests
+name: validate
 
 on:
   pull_request:
@@ -27,15 +27,20 @@ jobs:
           --keep AWS_ACCESS_KEY_ID \
           --keep AWS_SECRET_ACCESS_KEY \
           --keep AWS_SESSION_TOKEN \
+          --keep UPDATECLI_GPGTOKEN \
+          --keep UPDATECLI_GITHUB_TOKEN \
+          --keep UPDATECLI_GITHUB_ACTOR \
+          --keep GPG_SIGNING_KEY \
+          --keep NIX_ENV_LOADED \
           --keep TERM \
           ${{ github.workspace }}
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache/restore@v4
       id: cache-terraform-restore
       with:
         path: ${{ github.workspace }}/.terraform
         key: terraform
     - run: terraform init -upgrade
-    - uses: actions/cache/save@v3
+    - uses: actions/cache/save@v4
       id: cache-terraform-save
       with:
         path: ${{ github.workspace }}/.terraform
@@ -64,6 +69,11 @@ jobs:
           --keep AWS_ACCESS_KEY_ID \
           --keep AWS_SECRET_ACCESS_KEY \
           --keep AWS_SESSION_TOKEN \
+          --keep UPDATECLI_GPGTOKEN \
+          --keep UPDATECLI_GITHUB_TOKEN \
+          --keep UPDATECLI_GITHUB_ACTOR \
+          --keep GPG_SIGNING_KEY \
+          --keep NIX_ENV_LOADED \
           --keep TERM \
           ${{ github.workspace }}
     - run: actionlint
@@ -93,3 +103,34 @@ jobs:
       - uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  gitleaks:
+    name: 'Scan for Secrets'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: nicknovitski/nix-develop@v1.1.0
+      with:
+        arguments: |
+          --ignore-environment \
+          --extra-experimental-features nix-command \
+          --extra-experimental-features flakes \
+          --keep HOME \
+          --keep SSH_AUTH_SOCK \
+          --keep GITHUB_TOKEN \
+          --keep AWS_ROLE \
+          --keep AWS_REGION \
+          --keep AWS_DEFAULT_REGION \
+          --keep AWS_ACCESS_KEY_ID \
+          --keep AWS_SECRET_ACCESS_KEY \
+          --keep AWS_SESSION_TOKEN \
+          --keep UPDATECLI_GPGTOKEN \
+          --keep UPDATECLI_GITHUB_TOKEN \
+          --keep UPDATECLI_GITHUB_ACTOR \
+          --keep GPG_SIGNING_KEY \
+          --keep NIX_ENV_LOADED \
+          --keep TERM \
+          ${{ github.workspace }}
+    - run: gitleaks detect --no-banner -v --no-git
+    - run: gitleaks detect --no-banner -v
