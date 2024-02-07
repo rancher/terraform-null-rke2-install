@@ -1,0 +1,20 @@
+# Set update schedule for GitHub Actions
+
+version: 2
+updates:
+  # Check for updates to GitHub Actions every week
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday" # this way it is ready for review on Monday
+    commit-message:
+      prefix: "fix"
+  # Check for updates to terraform providers every week
+  - package-ecosystem: "terraform"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday" # this way it is ready for review on Monday
+    commit-message:
+      prefix: "fix"
