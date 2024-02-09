@@ -1,5 +1,50 @@
 # Changelog
 
+## 0.1.0 (2024-02-09)
+
+
+### Features
+
+* add rpm channel option ([#100](https://github.com/rancher/terraform-null-rke2-install/issues/100)) ([beb7efd](https://github.com/rancher/terraform-null-rke2-install/commit/beb7efd0016d5b1de11f0699f5bcd38c0cf9f165))
+* add workflows to start automatically releasing ([#52](https://github.com/rancher/terraform-null-rke2-install/issues/52)) ([33fadd6](https://github.com/rancher/terraform-null-rke2-install/commit/33fadd6d9438e20d8be725bb7de6d52d88ec3ed3))
+* rely on identifier for rke2 lifecycle rather than detecting fil… ([#87](https://github.com/rancher/terraform-null-rke2-install/issues/87)) ([ec5373d](https://github.com/rancher/terraform-null-rke2-install/commit/ec5373dfebcdad1521f9840e983b26f84a9d04b3))
+* remove variable for rke2 config and rely on local_file_path ([#68](https://github.com/rancher/terraform-null-rke2-install/issues/68)) ([b98a335](https://github.com/rancher/terraform-null-rke2-install/commit/b98a335f4cc6cf86ea211798f106b87621d988e4))
+
+
+### Bug Fixes
+
+* add a pinned terraform version to flake and fix remind workflow ([#55](https://github.com/rancher/terraform-null-rke2-install/issues/55)) ([a89f28b](https://github.com/rancher/terraform-null-rke2-install/commit/a89f28bc75800534e65ceac6ee0388707e791f2d))
+* add generated files to track files generated in other modules ([#82](https://github.com/rancher/terraform-null-rke2-install/issues/82)) ([ac44d01](https://github.com/rancher/terraform-null-rke2-install/commit/ac44d016eec7a6d7efc953367441394eb2f69a70))
+* add owner to workflow and skip github .42 ([#85](https://github.com/rancher/terraform-null-rke2-install/issues/85)) ([481e48c](https://github.com/rancher/terraform-null-rke2-install/commit/481e48ccd6210b681268820b69d45956be9df1c2))
+* add url to test in reminder ([#67](https://github.com/rancher/terraform-null-rke2-install/issues/67)) ([2c75d2c](https://github.com/rancher/terraform-null-rke2-install/commit/2c75d2c82e900770d9b6163c86f5104c32eab844))
+* allow setting start timeout ([#90](https://github.com/rancher/terraform-null-rke2-install/issues/90)) ([f7abe66](https://github.com/rancher/terraform-null-rke2-install/commit/f7abe66f8e5e56455268655229f346dda23708e9))
+* checkout main for e2e tests ([#64](https://github.com/rancher/terraform-null-rke2-install/issues/64)) ([5ca5bbb](https://github.com/rancher/terraform-null-rke2-install/commit/5ca5bbbcc27510caff88df850eeb6e295177040e))
+* Expose errors when starting service ([#72](https://github.com/rancher/terraform-null-rke2-install/issues/72)) ([fafe4d5](https://github.com/rancher/terraform-null-rke2-install/commit/fafe4d57fe0753eee3f6c9996f3e214695cea0d8))
+* expose the error if the service start fails ([#70](https://github.com/rancher/terraform-null-rke2-install/issues/70)) ([777a04f](https://github.com/rancher/terraform-null-rke2-install/commit/777a04fe0b60c1352939d68fccf09cbb50c0e45e))
+* fix spacing ([#66](https://github.com/rancher/terraform-null-rke2-install/issues/66)) ([3ed0de9](https://github.com/rancher/terraform-null-rke2-install/commit/3ed0de9e627642761119ce18cde5868159527e44))
+* fix workflow conditional ([#80](https://github.com/rancher/terraform-null-rke2-install/issues/80)) ([a7980e7](https://github.com/rancher/terraform-null-rke2-install/commit/a7980e727c7683cff2fe398efe8694a944e549fb))
+* fix workflow permissions ([#59](https://github.com/rancher/terraform-null-rke2-install/issues/59)) ([0fe3ecd](https://github.com/rancher/terraform-null-rke2-install/commit/0fe3ecd5e284ad4c52405ef800166d89224bf2b6))
+* get release-please pr number from json string ([#62](https://github.com/rancher/terraform-null-rke2-install/issues/62)) ([84dce7a](https://github.com/rancher/terraform-null-rke2-install/commit/84dce7a7b7fe8da1140c02174f288457d2ee4134))
+* increase start timeout default ([#92](https://github.com/rancher/terraform-null-rke2-install/issues/92)) ([e3dfb6f](https://github.com/rancher/terraform-null-rke2-install/commit/e3dfb6f4f4210cea7db645e113ee049d46f12f6d))
+* make sure names are unique ([#89](https://github.com/rancher/terraform-null-rke2-install/issues/89)) ([247697a](https://github.com/rancher/terraform-null-rke2-install/commit/247697a59cfe0b65a9abe305b0fc9e0684445e3e))
+* Move e2e test trigger to release PR ([#60](https://github.com/rancher/terraform-null-rke2-install/issues/60)) ([66af851](https://github.com/rancher/terraform-null-rke2-install/commit/66af85157a96ad43133a3dcd88188cef1e3827ae))
+* remove debug line ([#63](https://github.com/rancher/terraform-null-rke2-install/issues/63)) ([db40f4f](https://github.com/rancher/terraform-null-rke2-install/commit/db40f4f52f5b8f7833c337749adc9bda23c1611a))
+* remove env for release ([#61](https://github.com/rancher/terraform-null-rke2-install/issues/61)) ([e4757f3](https://github.com/rancher/terraform-null-rke2-install/commit/e4757f33b3d7bc122238b94fad9f3a348d3acde1))
+* remove json conversion ([#78](https://github.com/rancher/terraform-null-rke2-install/issues/78)) ([430017e](https://github.com/rancher/terraform-null-rke2-install/commit/430017ebac98f224fa93a3d1d810e96cf8221102))
+* remove the md5 file hash ([#86](https://github.com/rancher/terraform-null-rke2-install/issues/86)) ([e56769b](https://github.com/rancher/terraform-null-rke2-install/commit/e56769bd05fc8f592c764b771d3ded43a55323f2))
+* resolve install channel issue and add tests ([#97](https://github.com/rancher/terraform-null-rke2-install/issues/97)) ([5cc77b4](https://github.com/rancher/terraform-null-rke2-install/commit/5cc77b463f934ea6283888840747a547c66b96d3))
+* set tf version in release tests ([#65](https://github.com/rancher/terraform-null-rke2-install/issues/65)) ([8c1b315](https://github.com/rancher/terraform-null-rke2-install/commit/8c1b3155ac1b1399716006154d975bb253bd00aa))
+* skip e2e tests if no pr generated ([#76](https://github.com/rancher/terraform-null-rke2-install/issues/76)) ([a5b10cd](https://github.com/rancher/terraform-null-rke2-install/commit/a5b10cd2517c45bae1900735f172f6e817c5e5d1))
+* systemctl can form an endless loop, use poll with timeout instead ([#74](https://github.com/rancher/terraform-null-rke2-install/issues/74)) ([d06dcf5](https://github.com/rancher/terraform-null-rke2-install/commit/d06dcf546623df8d87aae1688e0029cb10c1ad07))
+* update mods, update tf req, fix candidate test ([#103](https://github.com/rancher/terraform-null-rke2-install/issues/103)) ([19a720a](https://github.com/rancher/terraform-null-rke2-install/commit/19a720ab4cef9f83f3160e8f66285ac140b71c63))
+* update readme to explain test suite ([#58](https://github.com/rancher/terraform-null-rke2-install/issues/58)) ([2022aae](https://github.com/rancher/terraform-null-rke2-install/commit/2022aaebed2681f83687eb92f310666801a0d4bf))
+* update release please and remote title pattern ([#93](https://github.com/rancher/terraform-null-rke2-install/issues/93)) ([91e372b](https://github.com/rancher/terraform-null-rke2-install/commit/91e372b8dcee53e278bd0d495d03eef2b74cc5c1))
+* update workflows and flake ([#102](https://github.com/rancher/terraform-null-rke2-install/issues/102)) ([87d5242](https://github.com/rancher/terraform-null-rke2-install/commit/87d52422af388c4f5ccf1019b9bf6d4c9e81cc52))
+* update workflows, env, and add troubleshooting to example ([#95](https://github.com/rancher/terraform-null-rke2-install/issues/95)) ([7613f65](https://github.com/rancher/terraform-null-rke2-install/commit/7613f65a120ff163e5549aed032230e3a4f5f0d6))
+* upgrade all the examples and use 'stable' channel for most of them ([#99](https://github.com/rancher/terraform-null-rke2-install/issues/99)) ([bfb0afa](https://github.com/rancher/terraform-null-rke2-install/commit/bfb0afadb6739204c1659f35b993536729a2ee9c))
+* upgrade examples and add github token to workflow ([#84](https://github.com/rancher/terraform-null-rke2-install/issues/84)) ([478b2a7](https://github.com/rancher/terraform-null-rke2-install/commit/478b2a7a9266264d5d11ff7661f8db03fbf62e6e))
+* upgrade terraform version in ci ([#57](https://github.com/rancher/terraform-null-rke2-install/issues/57)) ([2e8c83b](https://github.com/rancher/terraform-null-rke2-install/commit/2e8c83b038665226a8ff848611943bd55fbd056f))
+
 ## [0.4.0](https://github.com/rancher/terraform-null-rke2-install/compare/v0.3.3...v0.4.0) (2024-01-11)
 
 
