@@ -6,6 +6,8 @@ import (
 	//"log"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 
 	a "github.com/aws/aws-sdk-go/aws"
@@ -13,6 +15,7 @@ import (
 	"github.com/google/go-github/v53/github"
 	aws "github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/hashicorp/go-version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,4 +99,29 @@ func getLatestRelease(t *testing.T, owner string, repo string) string {
 	require.NoError(t, err)
 	version := *release.TagName
 	return version
+}
+
+func getLatestCandidateRelease(t *testing.T, owner string, repo string) string {
+	ghClient := github.NewClient(nil)
+	releases, _, err := ghClient.Repositories.ListReleases(context.Background(), owner, repo, &github.ListOptions{Page: 1, PerPage: 1000})
+	require.NoError(t, err)
+	sort.Slice(releases, func(i, j int) bool {
+		return releases[i].CreatedAt.GetTime().After(*releases[j].CreatedAt.GetTime())
+	})
+
+	sort.Slice(releases, func(i, j int) bool {
+		v1, err2 := version.NewVersion(strings.SplitN(*releases[i].TagName, "+", 2)[0])
+		require.NoError(t, err2)
+		v2, err3 := version.NewVersion(strings.SplitN(*releases[j].TagName, "+", 2)[0])
+		require.NoError(t, err3)
+		return v1.GreaterThan(v2)
+	})
+
+	releaseTags := []string{}
+	for i := range releases {
+		if strings.Contains(*releases[i].TagName, "-rc") {
+			releaseTags = append(releaseTags, *releases[i].TagName)
+		}
+	}
+	return releaseTags[0]
 }

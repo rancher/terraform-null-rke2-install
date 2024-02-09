@@ -25,7 +25,7 @@ locals {
 # this enables rpm install method
 module "aws_access" {
   source              = "rancher/access/aws"
-  version             = "v0.1.4"
+  version             = "v1.1.0"
   owner               = local.email
   vpc_name            = "default"
   subnet_name         = "default"
@@ -37,7 +37,7 @@ module "aws_access" {
 module "aws_server" {
   depends_on          = [module.aws_access]
   source              = "rancher/server/aws"
-  version             = "v0.1.1"
+  version             = "v0.2.1"
   image               = "rhel-9" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
   owner               = local.email
   name                = local.name
@@ -46,7 +46,7 @@ module "aws_server" {
   ssh_key             = local.public_ssh_key
   ssh_key_name        = local.key_name
   subnet_name         = "default"
-  security_group_name = module.aws_access.security_group_name
+  security_group_name = module.aws_access.security_group.name
 }
 
 # the idea here is to provide the least amount of config necessary to get a cluster up and running
