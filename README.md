@@ -31,7 +31,7 @@ If downloading the files from GitHub (not setting 'skip_download'), then you wil
 
 #### Terraform Version
 
-We specify the Terraform version < 1.6 to avoid potential license issues and version > 1.2.0 to enable custom variable validations.
+We specify the Terraform version < 1.6 to avoid potential license issues and version > 1.5.0.
 
 ## RKE2 Config
 
@@ -74,14 +74,11 @@ These tools are not necessary, but they can make it much simpler to collaborate.
 * I use [direnv](https://direnv.net/) that I have installed using brew.
 * I simply use `direnv allow` to enter the environment
 * I navigate to the `tests` directory and run `go test -v -timeout=40m -parallel=10`
-
   * It is important to note that the test files do not stand alone, they expect to run as a package.
   * This means that specifying the file to test (as follows) will fail: `go test -v -timeout 40m -parallel 10 basic_test.go`
-* To run an individual test I navigate to the `tests` directory and run `go test -v -timeout 40m -parallel 10 -run <test function name>`
-
+* To run an individual test I navigate to the `tests` directory and run `go test -v -timeout 40m -parallel 10 -run="<test function name>"`
   * eg. `go test -v -timeout 40m -parallel 10 -run TestBasic`
 * I store my credentials in a local files and generate a symlink to them
-
   * eg. `~/.config/github/default/rc`
   * this will be automatically sourced when you enter the nix environment (and unloaded when you leave)
   * see the `.envrc` and `.rcs` file for the implementation
