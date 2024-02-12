@@ -35,7 +35,7 @@ module "aws_access" {
 module "aws_server" {
   depends_on          = [module.aws_access]
   source              = "rancher/server/aws"
-  version             = "v0.2.1"
+  version             = "v0.3.0"
   image               = "sles-15" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
   owner               = local.email
   name                = local.name
@@ -49,7 +49,7 @@ module "aws_server" {
 # the default location for the files will be `./rke2`
 module "download" {
   source  = "rancher/rke2-download/github"
-  version = "v0.1.0"
+  version = "v0.1.1"
 }
 
 module "config" {
@@ -57,7 +57,7 @@ module "config" {
     module.download,
   ]
   source          = "rancher/rke2-config/local"
-  version         = "v0.1.2"
+  version         = "v0.1.3"
   local_file_path = module.download.path
 }
 

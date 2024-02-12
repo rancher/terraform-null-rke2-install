@@ -41,7 +41,7 @@ module "aws_server" {
     module.aws_access
   ]
   source              = "rancher/server/aws"
-  version             = "v0.2.1"
+  version             = "v0.3.0"
   image               = "rhel-8-cis" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
   owner               = local.email
   name                = local.name
