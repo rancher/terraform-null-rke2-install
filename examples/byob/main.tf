@@ -32,7 +32,7 @@ module "aws_access" {
 module "aws_server" {
   depends_on          = [module.aws_access]
   source              = "rancher/server/aws"
-  version             = "v0.2.1"
+  version             = "v0.3.0"
   image               = "sles-15" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
   owner               = local.email
   name                = local.name
