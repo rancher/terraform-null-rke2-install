@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.3...v1.0.4) (2024-05-10)
+
+
+### Bug Fixes
+
+* remove extension from config ([#111](https://github.com/rancher/terraform-null-rke2-install/issues/111)) ([dceaf15](https://github.com/rancher/terraform-null-rke2-install/commit/dceaf15d139af4db7aede1cb9ea1e71148d9132a))
+
 ## [1.0.3](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.2...v1.0.3) (2024-05-10)
 
 
