@@ -1,9 +1,17 @@
+#!/bin/env sh
 alias gs='git status'
 alias gd='git diff'
 alias tf='terraform'
-alias tfa='terraform apply --auto-approve'
+alias tfa='if [ -f ssh_key ]; then chmod 600 ssh_key && ssh-add ssh_key; fi; terraform init; terraform apply --auto-approve'
 alias tfd='terraform destroy --auto-approve'
 alias tfp='terraform init || terraform providers && terraform validate && terraform plan'
-alias tfr='terraform destroy --auto-approve; terraform apply --auto-approve'
+alias tfr='terraform destroy --auto-approve;if [ -f ssh_key ]; then chmod 600 ssh_key && ssh-add ssh_key; fi; terraform init; terraform apply --auto-approve'
+alias tfl='terraform state list'
 alias k='kubectl'
-alias tt='cd tests; go test -v -parallel=10 -timeout=80m'
+alias tt='run_tests'
+# expects AGE_ variables to be set, see .variables and .rcs
+alias es='encrypt_secrets' # looks in the secret file list and converts the files into encrypted ones, see .functions
+alias ds='decrypt_secrets' # looks in the secret file list and converts all the encrtypted files in to unencrypted ones, see .functions
+alias ef='encrypt_file' # see .functions
+alias cl='clear_local' # clears all of the temporary files from the directory, see .functions
+alias sc='shell_check' # runs shellcheck -x on all files with a shbang
