@@ -30,6 +30,11 @@ if [ $EXIT -eq 1 ]; then
   tail /var/lib/rancher/rke2/agent/logs/kubelet.log
   echo "containerd:"
   tail /var/lib/rancher/rke2/agent/containerd/containerd.log
+  echo "status:"
+  systemctl status "${SERVICE_NAME}"
+  echo "last 20 lines of journal:"
+  journalctl --lines 20 --unit "${SERVICE_NAME}"
+  journalctl --reverse --lines +20 --unit "${SERVICE_NAME}"
 fi
 
 exit $EXIT
