@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.2...v1.0.3) (2024-05-10)
+
+
+### Bug Fixes
+
+* save configuration to local file path ([#109](https://github.com/rancher/terraform-null-rke2-install/issues/109)) ([04d111d](https://github.com/rancher/terraform-null-rke2-install/commit/04d111d21a456c83f628f1920d0c11fc0c64df4c))
+
 ## [1.0.2](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.1...v1.0.2) (2024-02-12)
 
 
