@@ -198,7 +198,7 @@ resource "null_resource" "get_kubeconfig" {
     command = <<-EOT
       set -x
       set -e
-      FILE="${local.local_path}/kubeconfig-${local.identifier}.yaml"
+      FILE="${local.local_path}/kubeconfig-${local.identifier}"
       REMOTE_PATH="${local.remote_workspace}/kubeconfig.yaml"
       IP="${local.ssh_ip}"
       SSH_USER="${local.ssh_user}"
@@ -218,5 +218,5 @@ data "local_file" "kubeconfig" {
     null_resource.get_kubeconfig,
     null_resource.prep,
   ]
-  filename = "${local.local_path}/kubeconfig-${local.identifier}.yaml"
+  filename = "${local.local_path}/kubeconfig-${local.identifier}"
 }
