@@ -27,7 +27,8 @@ echo "${SERVICE_NAME} status is \"$(systemctl is-active "${SERVICE_NAME}")\""
 if [ $EXIT -eq 1 ]; then
   echo "Timed out attempting to start service:"
   echo "status:"
-  systemctl status "${SERVICE_NAME}" || true
+  systemctl status "${SERVICE_NAME}" > status.log || true
+  cat status.log || true
   echo "last 20 lines of journal:"
   journalctl --lines 20 --unit "${SERVICE_NAME}" || true
   echo "first 20 lines of journal:"
