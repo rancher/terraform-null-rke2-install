@@ -39,6 +39,10 @@ if [ $EXIT -eq 1 ]; then
   journalctl --reverse --lines +20 --unit "${SERVICE_NAME}" > first20.log || true
   cat first20.log || true
 
+  echo "rke2 config list:"
+  ls -lah /etc/rancher/rke2/config.yaml.d > configlist.log || true
+  cat configlist.log || true
+
   echo "kubelet:"
   tail /var/lib/rancher/rke2/agent/logs/kubelet.log || true
 
