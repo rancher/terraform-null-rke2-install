@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.10](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.9...v1.0.10) (2024-05-14)
+
+
+### Bug Fixes
+
+* improve output and test ([#123](https://github.com/rancher/terraform-null-rke2-install/issues/123)) ([fbb0a31](https://github.com/rancher/terraform-null-rke2-install/commit/fbb0a31b52e0cbac434a5eb9ab5a123fda28e176))
+
 ## [1.0.9](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.8...v1.0.9) (2024-05-13)
 
 
