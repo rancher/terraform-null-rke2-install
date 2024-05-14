@@ -82,4 +82,5 @@ module "basic_install" {
     local.rke2_version,
     module.config.yaml_config,
   ]))
+  retrieve_kubeconfig = true
 }
