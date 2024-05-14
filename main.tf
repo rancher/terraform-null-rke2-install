@@ -189,8 +189,8 @@ resource "null_resource" "get_kubeconfig" {
     inline = [<<-EOT
       set -x
       set -e
-      sudo cp /etc/rancher/rke2/rke2.yaml "${local.remote_workspace}/kubeconfig.yaml"
-      sudo chown ${local.ssh_user} "${local.remote_workspace}/kubeconfig.yaml"
+      sudo cp /etc/rancher/rke2/rke2.yaml "${local.remote_workspace}/kubeconfig"
+      sudo chown ${local.ssh_user} "${local.remote_workspace}/kubeconfig"
     EOT
     ]
   }
@@ -198,8 +198,8 @@ resource "null_resource" "get_kubeconfig" {
     command = <<-EOT
       set -x
       set -e
-      FILE="${local.local_path}/kubeconfig-${local.identifier}"
-      REMOTE_PATH="${local.remote_workspace}/kubeconfig.yaml"
+      FILE="${local.local_path}/kubeconfig"
+      REMOTE_PATH="${local.remote_workspace}/kubeconfig"
       IP="${local.ssh_ip}"
       SSH_USER="${local.ssh_user}"
 
@@ -208,7 +208,7 @@ resource "null_resource" "get_kubeconfig" {
     EOT
   }
 }
-data "local_file" "kubeconfig" {
+data "local_sensitive_file" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
     null_resource.copy_to_remote,
@@ -218,5 +218,5 @@ data "local_file" "kubeconfig" {
     null_resource.get_kubeconfig,
     null_resource.prep,
   ]
-  filename = "${local.local_path}/kubeconfig-${local.identifier}"
+  filename = "${local.local_path}/kubeconfig"
 }

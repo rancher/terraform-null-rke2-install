@@ -1,5 +1,5 @@
 output "kubeconfig" {
-  value       = (can(data.local_file.kubeconfig[0].content) ? data.local_file.kubeconfig[0].content : null)
+  value       = (length(data.local_sensitive_file.kubeconfig) > 0 ? data.local_sensitive_file.kubeconfig[0].content : "not found")
   description = <<-EOT
     The contents of the kubeconfig file.
   EOT
