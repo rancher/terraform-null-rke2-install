@@ -1,19 +1,20 @@
 locals {
-  release             = var.release
-  channel             = var.rpm_channel
-  role                = var.role
-  ssh_ip              = var.ssh_ip
-  ssh_user            = var.ssh_user
-  identifier          = var.identifier
-  local_file_path     = var.local_file_path
-  local_path          = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
-  remote_workspace    = ((var.remote_workspace == "~" || var.remote_workspace == "") ? "/home/${local.ssh_user}" : var.remote_workspace) # https://github.com/hashicorp/terraform/issues/30243
-  remote_path         = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
-  retrieve_kubeconfig = var.retrieve_kubeconfig
-  install_method      = var.install_method
-  server_prep_script  = var.server_prep_script
-  start               = var.start
-  start_timeout       = var.start_timeout
+  release                    = var.release
+  channel                    = var.rpm_channel
+  role                       = var.role
+  ssh_ip                     = var.ssh_ip
+  ssh_user                   = var.ssh_user
+  identifier                 = var.identifier
+  local_file_path            = var.local_file_path
+  local_path                 = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
+  remote_workspace           = ((var.remote_workspace == "~" || var.remote_workspace == "") ? "/home/${local.ssh_user}" : var.remote_workspace) # https://github.com/hashicorp/terraform/issues/30243
+  remote_path                = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
+  retrieve_kubeconfig        = var.retrieve_kubeconfig
+  install_method             = var.install_method
+  server_prep_script         = var.server_prep_script
+  server_install_prep_script = (var.server_install_prep_script == "" ? file("${path.module}/install_prep.sh") : var.server_install_prep_script)
+  start                      = var.start
+  start_timeout              = var.start_timeout
 }
 
 # if local path specified copy all files and folders to the remote_path directory
@@ -69,11 +70,48 @@ resource "null_resource" "configure" {
     ]
   }
 }
+
+# optionally run a script on the server before starting rke2
+# this can be used to mitigate OS specific issues or configuration
+# skipped when using the tarball install method because it should be self contained
+resource "null_resource" "install_prep" {
+  count = (local.server_install_prep_script == "" ? 0 : (local.install_method == "tar" ? 0 : 1))
+  depends_on = [
+    null_resource.copy_to_remote,
+    null_resource.configure,
+  ]
+  triggers = {
+    id     = local.identifier,
+    script = local.server_install_prep_script,
+  }
+  connection {
+    type        = "ssh"
+    user        = local.ssh_user
+    script_path = "${local.remote_workspace}/rke2_server_install_prep_terraform"
+    agent       = true
+    host        = local.ssh_ip
+  }
+  provisioner "file" {
+    content     = local.server_install_prep_script
+    destination = "${local.remote_workspace}/install_prep.sh"
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      set -x
+      set -e
+      sudo chmod +x "${local.remote_workspace}/install_prep.sh"
+      sudo ${local.remote_workspace}/install_prep.sh
+    EOT
+    ]
+  }
+}
+
 # run the install script, which may upgrade rke2 if it is already installed
 resource "null_resource" "install" {
   depends_on = [
     null_resource.copy_to_remote,
     null_resource.configure,
+    null_resource.install_prep,
   ]
   triggers = {
     id = local.identifier,
@@ -106,6 +144,7 @@ resource "null_resource" "prep" {
   depends_on = [
     null_resource.copy_to_remote,
     null_resource.configure,
+    null_resource.install_prep,
     null_resource.install,
   ]
   triggers = {
@@ -139,6 +178,7 @@ resource "null_resource" "start" {
   depends_on = [
     null_resource.copy_to_remote,
     null_resource.configure,
+    null_resource.install_prep,
     null_resource.install,
     null_resource.prep,
   ]
@@ -171,6 +211,7 @@ resource "null_resource" "get_kubeconfig" {
   depends_on = [
     null_resource.copy_to_remote,
     null_resource.configure,
+    null_resource.install_prep,
     null_resource.install,
     null_resource.start,
     null_resource.prep,
@@ -213,6 +254,7 @@ data "local_sensitive_file" "kubeconfig" {
   depends_on = [
     null_resource.copy_to_remote,
     null_resource.configure,
+    null_resource.install_prep,
     null_resource.install,
     null_resource.start,
     null_resource.get_kubeconfig,

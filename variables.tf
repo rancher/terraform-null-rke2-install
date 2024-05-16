@@ -117,10 +117,25 @@ variable "install_method" {
 variable "server_prep_script" {
   type        = string
   description = <<-EOT
+    The content of a script to run on the server before starting RKE2.
+    This script will be run as root.
+    This is useful for preparing the server to run RKE2 after installation.
+    This can help mitigate issues like those found in https://docs.rke2.io/known_issues
+  EOT
+  default     = ""
+}
+variable "server_install_prep_script" {
+  type        = string
+  description = <<-EOT
     The content of a script to run on the server before installing RKE2.
     This script will be run as root.
     This is useful for installing dependencies or configuring the server.
-    This can help mitigate issues like those found in https://docs.rke2.io/known_issues
+    The default behavior is based on the install method;
+    If the install method is tar, the default is not to run anything.
+    If the install method is rpm, the default is to run the install_prep.sh script in this repo.
+    WARNING! This script will upgrade the kernel and install and configure selinux.
+      The goal of this is to try to provide the most secure default experience possible.
+    Set the value to "#" to disable.
   EOT
   default     = ""
 }
