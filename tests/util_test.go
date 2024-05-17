@@ -123,5 +123,5 @@ func getLatestCandidateRelease(t *testing.T, owner string, repo string) string {
 			releaseTags = append(releaseTags, *releases[i].TagName)
 		}
 	}
-	return releaseTags[0]
+	return releaseTags[1]
 }
