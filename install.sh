@@ -43,6 +43,7 @@ chmod +x "${REMOTE_PATH}"/install.sh
 
 # reboot in 2 seconds and exit this script
 # this allows us to reboot without Terraform receiving errors
-# WARNING: there is a race condition here, the reboot must happen before Terraform reconnects for the next script
+# the ip tables rule prevents a race condition where Terraform reconnects before the reboot
+iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j DROP
 ( sleep 2 ; reboot ) &
 exit 0
