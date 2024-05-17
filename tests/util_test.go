@@ -78,6 +78,7 @@ func setup(t *testing.T, directory string, region string, owner string, id strin
 		".*registry service is unreachable.*":        "Failed due to transient network error.",
 		".*connection reset by peer.*":               "Failed due to transient network error.",
 		".*TLS handshake timeout.*":                  "Failed due to transient network error.",
+		".*i/o timeout.*":                            "Failed due to transient network error.",
 	}
 
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
