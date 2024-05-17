@@ -130,12 +130,6 @@ variable "server_install_prep_script" {
     The content of a script to run on the server before installing RKE2.
     This script will be run as root.
     This is useful for installing dependencies or configuring the server.
-    The default behavior is based on the install method;
-    If the install method is tar, the default is not to run anything.
-    If the install method is rpm, the default is to run the install_prep.sh script in this repo.
-    WARNING! This script will upgrade the kernel and install and configure selinux.
-      The goal of this is to try to provide the most secure default experience possible.
-    Set the value to "#" to disable.
   EOT
   default     = ""
 }

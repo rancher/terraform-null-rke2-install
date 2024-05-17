@@ -78,12 +78,13 @@ module "stable_install" {
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   # version = "v0.2.7" # when using this example you will need to set the version
-  ssh_ip             = module.aws_server.public_ip
-  ssh_user           = local.username
-  release            = local.rke2_version
-  local_file_path    = "${path.root}/rke2"
-  install_method     = "rpm"
-  server_prep_script = file("${path.root}/prep.sh")
+  ssh_ip                     = module.aws_server.public_ip
+  ssh_user                   = local.username
+  release                    = local.rke2_version
+  local_file_path            = "${path.root}/rke2"
+  install_method             = "rpm"
+  server_install_prep_script = file("${path.root}/install_prep.sh")
+  server_prep_script         = file("${path.root}/prep.sh")
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.aws_server.id,
