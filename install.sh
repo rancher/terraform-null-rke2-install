@@ -40,3 +40,9 @@ fi
 
 chmod +x "${REMOTE_PATH}"/install.sh
 "${REMOTE_PATH}"/install.sh
+
+# reboot in 2 seconds and exit this script
+# this allows us to reboot without Terraform receiving errors
+# WARNING: there is a race condition here, the reboot must happen before Terraform reconnects for the next script
+( sleep 2 ; reboot ) &
+exit 0
