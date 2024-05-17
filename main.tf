@@ -12,7 +12,7 @@ locals {
   retrieve_kubeconfig        = var.retrieve_kubeconfig
   install_method             = var.install_method
   server_prep_script         = var.server_prep_script
-  server_install_prep_script = (var.server_install_prep_script == "" ? file("${path.module}/install_prep.sh") : var.server_install_prep_script)
+  server_install_prep_script = var.server_install_prep_script
   start                      = var.start
   start_timeout              = var.start_timeout
 }
@@ -75,14 +75,14 @@ resource "null_resource" "configure" {
 # this can be used to mitigate OS specific issues or configuration
 # skipped when using the tarball install method because it should be self contained
 resource "null_resource" "install_prep" {
-  count = (local.server_install_prep_script == "" ? 0 : (local.install_method == "tar" ? 0 : 1))
+  count = (local.server_install_prep_script == "" ? 0 : 1)
   depends_on = [
     null_resource.copy_to_remote,
     null_resource.configure,
   ]
   triggers = {
     id     = local.identifier,
-    script = local.server_install_prep_script,
+    script = md5(local.server_install_prep_script),
   }
   connection {
     type        = "ssh"
