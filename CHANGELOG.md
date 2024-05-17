@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.2...v1.1.3) (2024-05-17)
+
+
+### Bug Fixes
+
+* drop connections before reboot ([#132](https://github.com/rancher/terraform-null-rke2-install/issues/132)) ([9903123](https://github.com/rancher/terraform-null-rke2-install/commit/99031239c9015efd024a76e773cd78b0ad431b70))
+
 ## [1.1.2](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.1...v1.1.2) (2024-05-17)
 
 
