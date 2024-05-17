@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.0...v1.1.1) (2024-05-17)
+
+
+### Bug Fixes
+
+* remove the default script run ([#128](https://github.com/rancher/terraform-null-rke2-install/issues/128)) ([37f39ac](https://github.com/rancher/terraform-null-rke2-install/commit/37f39ac862a7a8a83cf24e1dfbd597387610f771))
+
 ## [1.1.0](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.10...v1.1.0) (2024-05-17)
 
 
