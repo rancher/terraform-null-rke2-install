@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.10...v1.1.0) (2024-05-17)
+
+
+### Features
+
+* add hooks for preinstall ([#125](https://github.com/rancher/terraform-null-rke2-install/issues/125)) ([3c33c0f](https://github.com/rancher/terraform-null-rke2-install/commit/3c33c0f417e2e9e268ab7cd68dc52e24a8b877f3))
+
+
+### Bug Fixes
+
+* use next to last candidate ([#127](https://github.com/rancher/terraform-null-rke2-install/issues/127)) ([3bad01e](https://github.com/rancher/terraform-null-rke2-install/commit/3bad01ed4bd34b7cf53bc15037e496e1d6c1d6c3))
+
 ## [1.0.10](https://github.com/rancher/terraform-null-rke2-install/compare/v1.0.9...v1.0.10) (2024-05-14)
 
 
