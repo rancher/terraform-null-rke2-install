@@ -73,6 +73,15 @@ variable "ssh_ip" {
     Ssh port must be open and listening, and the user must have sudo/admin privileges.
     This script will only run the install script, please ensure that the server is ready.
   EOT
+  validation {
+    condition = (
+      anytrue([
+        can(regex("^(?:[[:digit:]]{1,3}\\.){3}[[:digit:]]{1,3}$", var.ssh_ip)),          # IPv4
+        can(regex("^(?:[[:xdigit:]]{0,4}\\:{1,7}){1,7}[[:xdigit:]]{0,4}$", var.ssh_ip)), # IPv6
+      ])
+    )
+    error_message = "Address must be an IPv4 or IPv6 address with lower case letters."
+  }
 }
 variable "ssh_user" {
   type        = string

@@ -18,10 +18,7 @@ func TestLatest(t *testing.T) {
 	directory := "latest"
 	region := "us-west-1"
 	owner := "terraform-ci@suse.com"
-	release := "latest"
-	terraformVars := map[string]interface{}{
-		"rke2_version": release,
-	}
+	terraformVars := map[string]interface{}{}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)

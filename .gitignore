@@ -21,4 +21,4 @@ examples/**/51-*
 *.lock
 *.DS_*
 id_ed25519_*
-
+examples/*/data

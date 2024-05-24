@@ -1,8 +1,10 @@
 locals {
-  release                    = var.release
-  channel                    = var.rpm_channel
-  role                       = var.role
-  ssh_ip                     = var.ssh_ip
+  release = var.release
+  channel = var.rpm_channel
+  role    = var.role
+  ssh_ip  = var.ssh_ip
+  # tflint-ignore: terraform_unused_declarations
+  ssh_ip_fail                = (local.ssh_ip == "" ? one([local.ssh_ip, "missing_ip"]) : false)
   ssh_user                   = var.ssh_user
   identifier                 = var.identifier
   local_file_path            = var.local_file_path
@@ -18,16 +20,20 @@ locals {
 }
 
 # if local path specified copy all files and folders to the remote_path directory
-resource "null_resource" "copy_to_remote" {
-  triggers = {
-    id = local.identifier,
-  }
+resource "terraform_data" "copy_to_remote" {
+  triggers_replace = local.identifier
   connection {
     type        = "ssh"
     user        = local.ssh_user
     script_path = "${local.remote_workspace}/rke2_copy_terraform"
     agent       = true
     host        = local.ssh_ip
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
   }
   provisioner "file" {
     source      = local.local_path
@@ -44,7 +50,7 @@ resource "null_resource" "copy_to_remote" {
 }
 resource "null_resource" "configure" {
   depends_on = [
-    null_resource.copy_to_remote,
+    terraform_data.copy_to_remote,
   ]
   triggers = {
     id = local.identifier,
@@ -55,6 +61,12 @@ resource "null_resource" "configure" {
     script_path = "${local.remote_workspace}/rke2_config_terraform"
     agent       = true
     host        = local.ssh_ip
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
   }
   provisioner "file" {
     source      = "${abspath(path.module)}/configure.sh"
@@ -77,7 +89,7 @@ resource "null_resource" "configure" {
 resource "null_resource" "install_prep" {
   count = (local.server_install_prep_script == "" ? 0 : 1)
   depends_on = [
-    null_resource.copy_to_remote,
+    terraform_data.copy_to_remote,
     null_resource.configure,
   ]
   triggers = {
@@ -90,6 +102,12 @@ resource "null_resource" "install_prep" {
     script_path = "${local.remote_workspace}/rke2_server_install_prep_terraform"
     agent       = true
     host        = local.ssh_ip
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
   }
   provisioner "file" {
     content     = local.server_install_prep_script
@@ -104,14 +122,30 @@ resource "null_resource" "install_prep" {
     EOT
     ]
   }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "rebooting..."
+      sudo reboot
+    EOT
+    ]
+    on_failure = continue
+  }
 }
-
+resource "time_sleep" "ten_s_before_install" {
+  depends_on = [
+    terraform_data.copy_to_remote,
+    null_resource.configure,
+    null_resource.install_prep,
+  ]
+  create_duration = "10s"
+}
 # run the install script, which may upgrade rke2 if it is already installed
 resource "null_resource" "install" {
   depends_on = [
-    null_resource.copy_to_remote,
+    terraform_data.copy_to_remote,
     null_resource.configure,
     null_resource.install_prep,
+    time_sleep.ten_s_before_install,
   ]
   triggers = {
     id = local.identifier,
@@ -123,6 +157,12 @@ resource "null_resource" "install" {
     agent       = true
     host        = local.ssh_ip
   }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
+  }
   provisioner "file" {
     source      = "${abspath(path.module)}/install.sh"
     destination = "${local.remote_workspace}/install.sh"
@@ -131,21 +171,41 @@ resource "null_resource" "install" {
     inline = [<<-EOT
       set -x
       set -e
+      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be 01."
       sudo chmod +x "${local.remote_workspace}/install.sh"
       sudo ${local.remote_workspace}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}" "${local.channel}"
     EOT
     ]
   }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      sudo reboot
+    EOT
+    ]
+    on_failure = continue
+  }
+}
+resource "time_sleep" "ten_s_after_install" {
+  depends_on = [
+    terraform_data.copy_to_remote,
+    null_resource.configure,
+    null_resource.install_prep,
+    time_sleep.ten_s_before_install,
+    null_resource.install,
+  ]
+  create_duration = "10s"
 }
 # optionally run a script on the server before starting rke2
 # this can be used to mitigate OS specific issues or configuration
 resource "null_resource" "prep" {
   count = (local.server_prep_script == "" ? 0 : 1)
   depends_on = [
-    null_resource.copy_to_remote,
+    terraform_data.copy_to_remote,
     null_resource.configure,
     null_resource.install_prep,
+    time_sleep.ten_s_before_install,
     null_resource.install,
+    time_sleep.ten_s_after_install,
   ]
   triggers = {
     id     = local.identifier,
@@ -158,6 +218,12 @@ resource "null_resource" "prep" {
     agent       = true
     host        = local.ssh_ip
   }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
+  }
   provisioner "file" {
     content     = local.server_prep_script
     destination = "${local.remote_workspace}/prep.sh"
@@ -166,21 +232,44 @@ resource "null_resource" "prep" {
     inline = [<<-EOT
       set -x
       set -e
+      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be 01."
       sudo chmod +x "${local.remote_workspace}/prep.sh"
       sudo ${local.remote_workspace}/prep.sh
     EOT
     ]
   }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      sudo reboot
+    EOT
+    ]
+    on_failure = continue
+  }
+}
+resource "time_sleep" "ten_s_before_start" {
+  depends_on = [
+    terraform_data.copy_to_remote,
+    null_resource.configure,
+    null_resource.install_prep,
+    time_sleep.ten_s_before_install,
+    null_resource.install,
+    time_sleep.ten_s_after_install,
+    null_resource.prep,
+  ]
+  create_duration = "10s"
 }
 # start or restart rke2 service
 resource "null_resource" "start" {
   count = (local.start == true ? 1 : 0)
   depends_on = [
-    null_resource.copy_to_remote,
+    terraform_data.copy_to_remote,
     null_resource.configure,
     null_resource.install_prep,
+    time_sleep.ten_s_before_install,
     null_resource.install,
+    time_sleep.ten_s_after_install,
     null_resource.prep,
+    time_sleep.ten_s_before_start,
   ]
   triggers = {
     id = local.identifier,
@@ -192,6 +281,12 @@ resource "null_resource" "start" {
     agent       = true
     host        = local.ssh_ip
   }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
+  }
   provisioner "file" {
     source      = "${abspath(path.module)}/start.sh"
     destination = "${local.remote_workspace}/start.sh"
@@ -200,6 +295,7 @@ resource "null_resource" "start" {
     inline = [<<-EOT
       set -x
       set -e
+      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be low."
       sudo chmod +x ${local.remote_workspace}/start.sh
       sudo ${local.remote_workspace}/start.sh "${local.role}" "${local.start_timeout}"
     EOT
@@ -209,7 +305,7 @@ resource "null_resource" "start" {
 resource "null_resource" "get_kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    null_resource.copy_to_remote,
+    terraform_data.copy_to_remote,
     null_resource.configure,
     null_resource.install_prep,
     null_resource.install,
@@ -225,6 +321,12 @@ resource "null_resource" "get_kubeconfig" {
     script_path = "${local.remote_workspace}/get_kubeconfig_terraform"
     agent       = true
     host        = local.ssh_ip
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
   }
   provisioner "remote-exec" {
     inline = [<<-EOT
@@ -252,7 +354,7 @@ resource "null_resource" "get_kubeconfig" {
 data "local_sensitive_file" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
-    null_resource.copy_to_remote,
+    terraform_data.copy_to_remote,
     null_resource.configure,
     null_resource.install_prep,
     null_resource.install,

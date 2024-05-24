@@ -7,14 +7,14 @@ provider "aws" {
   }
 }
 
-# test install on rhel-8-cis without starting (prototype for immutable airgapped deploy)
+# test install on sle-micro-55 (no cloud init and reboot after install)
 locals {
   identifier      = var.identifier # this is a random unique string that can be used to identify resources in the cloud provider
   email           = "terraform-ci@suse.com"
   example         = "reboot"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
   username        = "tf-${local.identifier}"
-  image           = "rhel-8-cis"
+  image           = "sle-micro-55-byos"
   vpc_cidr        = "10.1.0.0/16" # gives 256 usable addresses from .1 to .254, but AWS reserves .1 to .4 and .255, leaving .5 to .254
   subnet_cidr     = "10.1.255.0/24"
   ip              = chomp(data.http.myip.response_body)
@@ -88,7 +88,7 @@ module "server" {
     aws_keypair_use_strategy = "select"
     ssh_key_name             = local.key_name
     public_ssh_key           = local.ssh_key # ssh key to add via cloud-init
-    user_workfolder          = "/var/tmp"
+    user_workfolder          = "/home/${local.username}"
     timeout                  = 5
   }
 }
@@ -113,10 +113,9 @@ module "this" {
   ssh_user            = local.username
   release             = local.rke2_version
   local_file_path     = local.local_file_path
-  retrieve_kubeconfig = false # kubeconfig is not generated until rke2 is started
+  retrieve_kubeconfig = true
   install_method      = "rpm"
   remote_workspace    = module.server.image.workfolder
-  start               = false
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.server.server.id,

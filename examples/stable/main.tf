@@ -1,94 +1,126 @@
-# the GITHUB_TOKEN environment variable must be set for this example to work
-provider "github" {}
-
 provider "aws" {
   default_tags {
     tags = {
-      ID = local.identifier
+      Id    = local.identifier
+      Owner = local.email
     }
   }
 }
 
 locals {
-  email          = "terraform-ci@suse.com"
-  identifier     = var.identifier
-  name           = "tf-install-stable-${local.identifier}"
-  username       = "tf-${local.identifier}"
-  rke2_version   = var.rke2_version # I want ci to be able to get the latest version of rke2 to test
-  public_ssh_key = var.key          # I don't normally recommend using variables in root modules, but it allows tests to supply their own key
-  key_name       = var.key_name     # A lot of troubleshooting during critical times can be saved by hard coding variables in root modules
-  # root modules should be secured properly (including the state), and should represent your running infrastructure
+  identifier      = var.identifier # this is a random unique string that can be used to identify resources in the cloud provider
+  email           = "terraform-ci@suse.com"
+  example         = "stable"
+  project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
+  username        = "tf-${local.identifier}"
+  image           = "sles-15"
+  vpc_cidr        = "10.1.0.0/16" # gives 256 usable addresses from .1 to .254, but AWS reserves .1 to .4 and .255, leaving .5 to .254
+  subnet_cidr     = "10.1.255.0/24"
+  ip              = chomp(data.http.myip.response_body)
+  ssh_key         = var.key
+  key_name        = var.key_name
+  rke2_version    = "stable"
+  local_file_path = "${path.root}/data/${local.identifier}"
 }
 
-# selecting the vpc, subnet, and ssh key pair, generating a security group specific to the ci runner, and allowing egress traffic (no ingress)
-# this enables rpm install method
-module "aws_access" {
-  source              = "rancher/access/aws"
-  version             = "v1.1.1"
-  owner               = local.email
-  vpc_name            = "default"
-  subnet_name         = "default"
-  security_group_name = local.name
-  security_group_type = "egress" # https://github.com/rancher/terraform-aws-access/blob/main/modules/security_group/types.tf
-  ssh_key_name        = local.key_name
+data "http" "myip" {
+  url = "https://ipinfo.io/ip"
 }
 
-module "aws_server" {
-  depends_on          = [module.aws_access]
-  source              = "rancher/server/aws"
-  version             = "v0.3.0"
-  image               = "sles-15" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
-  owner               = local.email
-  name                = local.name
-  type                = "medium" # https://github.com/rancher/terraform-aws-server/blob/main/modules/server/types.tf
-  user                = local.username
-  ssh_key             = local.public_ssh_key
-  ssh_key_name        = local.key_name
-  subnet_name         = "default"
-  security_group_name = module.aws_access.security_group.name
+resource "random_pet" "server" {
+  keepers = {
+    # regenerate the pet name when the identifier changes
+    identifier = local.identifier
+  }
+  length = 1
 }
 
-resource "random_uuid" "join_token" {}
+data "aws_availability_zones" "available" {
+  state = "available"
+}
 
-# the idea here is to provide the least amount of config necessary to get a cluster up and running
-# if a user wants to provide their own config, they can put it in the local_file_path or supply it as a string
-module "config" {
+module "access" {
+  source   = "rancher/access/aws"
+  version  = "v2.1.2"
+  vpc_name = "${local.project_name}-vpc"
+  vpc_cidr = local.vpc_cidr
+  subnets = {
+    "${local.project_name}-sn" = {
+      cidr              = local.subnet_cidr
+      availability_zone = data.aws_availability_zones.available.names[0]
+      public            = false # only provision private ips for this subnet
+    }
+  }
+  security_group_name        = "${local.project_name}-sg"
+  security_group_type        = "project"
+  load_balancer_use_strategy = "skip"
+}
+
+module "server" {
   depends_on = [
-    module.aws_access,
-    module.aws_server,
-    random_uuid.join_token,
+    module.access,
   ]
-  source            = "rancher/rke2-config/local"
-  version           = "v0.1.1"
-  advertise-address = module.aws_server.private_ip
-  tls-san           = [module.aws_server.public_ip, module.aws_server.private_ip]
-  node-external-ip  = [module.aws_server.public_ip]
-  node-ip           = [module.aws_server.private_ip]
-  local_file_path   = "${path.root}/rke2"
-  local_file_name   = "50-${local.identifier}.yaml"
-  token             = random_uuid.join_token.result
+  source                     = "rancher/server/aws"
+  version                    = "v1.0.1"
+  image_type                 = local.image
+  server_name                = "${local.project_name}-${random_pet.server.id}"
+  server_type                = "small"
+  subnet_name                = module.access.subnets[keys(module.access.subnets)[0]].tags_all.Name
+  security_group_name        = module.access.security_group.tags_all.Name
+  direct_access_use_strategy = "ssh"  # either the subnet needs to be public or you must add an eip
+  cloudinit_use_strategy     = "skip" # sle-micro-55 doesn't have cloudinit
+  add_eip                    = true   # adding an eip to allow setup
+  server_access_addresses = {         # you must include ssh access here to enable setup
+    "runnerSsh" = {
+      port     = 22
+      protocol = "tcp"
+      cidrs    = ["${local.ip}/32"]
+    }
+    "runnerKube" = {
+      port     = 6443
+      protocol = "tcp"
+      cidrs    = ["${local.ip}/32"]
+    }
+  }
+  server_user = {
+    user                     = local.username
+    aws_keypair_use_strategy = "select"
+    ssh_key_name             = local.key_name
+    public_ssh_key           = local.ssh_key # ssh key to add via cloud-init
+    user_workfolder          = "/home/${local.username}"
+    timeout                  = 5
+  }
 }
 
-module "stable_install" {
+module "config" {
+  source          = "rancher/rke2-config/local"
+  version         = "v0.1.3"
+  local_file_path = local.local_file_path
+}
+
+
+# everything before this module is not necessary, you can generate the resources manually or use other methods
+module "this" {
   depends_on = [
-    module.aws_access,
-    module.aws_server,
-    random_uuid.join_token,
+    module.access,
+    module.server,
     module.config,
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   # version = "v0.2.7" # when using this example you will need to set the version
-  ssh_ip                     = module.aws_server.public_ip
+  ssh_ip                     = module.server.server.public_ip
   ssh_user                   = local.username
   release                    = local.rke2_version
-  local_file_path            = "${path.root}/rke2"
+  local_file_path            = local.local_file_path
+  retrieve_kubeconfig        = true
+  remote_workspace           = module.server.image.workfolder
   install_method             = "rpm"
   server_install_prep_script = file("${path.root}/install_prep.sh")
-  server_prep_script         = file("${path.root}/prep.sh")
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
-    module.aws_server.id,
+    module.server.server.id,
     local.rke2_version,
     module.config.yaml_config,
+    module.server.image.workfolder,
   ]))
 }
