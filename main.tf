@@ -1,8 +1,9 @@
 locals {
-  release                    = var.release
-  channel                    = var.rpm_channel
-  role                       = var.role
-  ssh_ip                     = var.ssh_ip
+  release = var.release
+  channel = var.rpm_channel
+  role    = var.role
+  ssh_ip  = var.ssh_ip
+  # tflint-ignore: terraform_unused_declarations
   ssh_ip_fail                = (local.ssh_ip == "" ? one([local.ssh_ip, "missing_ip"]) : false)
   ssh_user                   = var.ssh_user
   identifier                 = var.identifier
