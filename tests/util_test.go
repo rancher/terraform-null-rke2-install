@@ -90,6 +90,7 @@ func setup(t *testing.T, directory string, region string, owner string, id strin
 			"AWS_DEFAULT_REGION": region,
 		},
 		RetryableTerraformErrors: retryableTerraformErrors,
+		MaxRetries: 20,
 	})
 	return terraformOptions, keyPair
 }

@@ -9,16 +9,19 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func TestStable(t *testing.T) {
+func TestReboot(t *testing.T) {
 	t.Parallel()
 	id := os.Getenv("IDENTIFIER")
 	if id == "" {
 		id = random.UniqueId()
 	}
-	directory := "stable"
+	directory := "reboot"
 	region := "us-west-1"
 	owner := "terraform-ci@suse.com"
-	terraformVars := map[string]interface{}{}
+	release := "stable"
+	terraformVars := map[string]interface{}{
+		"rke2_version": release,
+	}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)

@@ -1,9 +1,9 @@
 package test
 
 import (
+	"fmt"
 	"os"
 	"testing"
-	"encoding/json"
 
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/ssh"
@@ -21,10 +21,7 @@ func TestBasic(t *testing.T) {
 	directory := "basic"
 	region := "us-west-1"
 	owner := "terraform-ci@suse.com"
-	release := "stable"
-	terraformVars := map[string]interface{}{
-		"rke2_version": release,
-	}
+	terraformVars := map[string]interface{}{}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
@@ -35,20 +32,16 @@ func TestBasic(t *testing.T) {
 	defer terraform.Destroy(t, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
 
-	outputJson := terraform.OutputJson(t, terraformOptions, "")
-	type OutputData struct {
-		Kubeconfig struct {
-			Sensitive bool   `json:"sensitive"`
-			Type      string `json:"type"`
-			Value     string `json:"value"`
-		} `json:"kubeconfig"`
-	}
-	var data OutputData
-	t.Logf("Json Output: %s", outputJson)
-	err := json.Unmarshal([]byte(outputJson), &data)
-	if err != nil {
-		t.Fatalf("Error unmarshalling Json: %v", err)
-	}
-	assert.NotEmpty(t, data.Kubeconfig.Value)
-	assert.NotEqualValues(t, data.Kubeconfig.Value, "not found")
+	out := terraform.OutputAll(t,terraformOptions)
+  t.Logf("out: %v", out)
+  outputServer, ok := out["server"].(map[string]interface{})
+  assert.True(t, ok, fmt.Sprintf("Wrong data type for 'server', expected map[string], got %T", out["server"]))
+  outputImage, ok := out["image"].(map[string]interface{})
+  assert.True(t, ok, fmt.Sprintf("Wrong data type for 'image', expected map[string], got %T", out["image"]))
+  outputKubeconfig, ok := out["kubeconfig"].(string)
+  assert.True(t, ok, fmt.Sprintf("Wrong data type for 'kubeconfig', expected string, got %T", out["kubeconfig"]))
+
+	assert.NotEmpty(t, outputKubeconfig, "The 'kubeconfig' is empty")
+	assert.NotEmpty(t, outputServer["public_ip"], "The 'server.public_ip' is empty")
+  assert.NotEmpty(t, outputImage["id"], "The 'image.id' is empty")
 }
