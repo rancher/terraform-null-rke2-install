@@ -197,33 +197,7 @@ set_repo_name() {
 }
 
 run_tests() {
-  if [ -d "./tests" ]; then
-    cd tests
-  fi
-  cat <<'EOF'> /tmp/terraform-null-rke2-install-test-processor
-echo "Passed: "
-cat /tmp/terraform-null-rke2-install-test.log | jq -r '. | select(.Action == "pass") | select(.Test != null).Test'
-echo " "
-echo "Failed: "
-FAILED_TESTS="$(jq -r '. | select(.Action == "fail") | select(.Test != null).Test' /tmp/terraform-null-rke2-install-test.log)"
-for TEST in $FAILED_TESTS; do
-  echo "$TEST"
-  jq --arg TEST "$TEST" -r 'select(.Test == $TEST) | select(.Output != null) | select(.Output | contains("Error")).Output' /tmp/terraform-null-rke2-install-test.log | grep -v '^$'
-  echo " "
-done
-echo " "
-EOF
-  chmod +x /tmp/terraform-null-rke2-install-test-processor
-
-  gotestsum \
-    --format=standard-verbose \
-    --jsonfile /tmp/terraform-null-rke2-install-test.log \
-    --post-run-command "bash /tmp/terraform-null-rke2-install-test-processor" \
-    -- \
-    -parallel=10 \
-    -timeout=80m \
-    "${1}"
-
+  ./run_tests.sh
   get_leftovers
 }
 
