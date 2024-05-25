@@ -119,6 +119,7 @@ jobs:
           echo "Commit messages found: "
           echo "$COMMIT_MESSAGES"
 
+          if [ "" == "$COMMIT_MESSAGES" ]; then echo "...No commit messages found"; exit 1; fi
           while read -r message; do
             echo "checking message ^$message\$"
             prefix_check "$message"
