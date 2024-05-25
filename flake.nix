@@ -51,6 +51,7 @@
               bashInteractive
               curl
               dig
+              gh
               git
               gitleaks
               gnupg
