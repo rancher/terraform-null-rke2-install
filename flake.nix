@@ -42,11 +42,13 @@
               chmod +x $out/bin/leftovers
             '';
           };
+          aspellWithDicts = pkgs.aspellWithDicts (d: [d.en d.en-computers]);
 
           devShellPackage = pkgs.symlinkJoin {
             name = "dev-shell-package";
             paths = with pkgs; [
               actionlint
+              aspellWithDicts
               awscli2
               bashInteractive
               curl
