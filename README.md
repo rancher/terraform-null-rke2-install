@@ -27,7 +27,7 @@ You will need Curl available on the server running Terraform.
 #### Local Filesystem Write Access
 
 You will need write access to the filesystem on the server running Terraform.
-If downloading the files from GitHub (not setting 'skip_download'), then you will need about 2GB storage space available in the 'local_file_path' location (defaults to ./rke2).
+If downloading the files from GitHub, then you will need about 3GB storage space available in the 'local_file_path' location (defaults to ./rke2).
 
 #### Terraform Version
 
