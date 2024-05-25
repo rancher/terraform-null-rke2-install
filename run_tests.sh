@@ -12,7 +12,7 @@ echo "Failed: "
 FAILED_TESTS="$(jq -r '. | select(.Action == "fail") | select(.Test != null).Test' /tmp/test.log)"
 for TEST in $FAILED_TESTS; do
   echo "$TEST"
-  grep $TEST /tmp/test.log | grep '        \\t' | jq '.Output' | sed 's/\\t\|\\n\|\\\|"        //g'; done
+  grep $TEST /tmp/test.log | grep '        \\t' | jq '.Output' | sed 's/\\t\|\\n\|\\\|"        //g'
   echo " "
 done
 echo " "
