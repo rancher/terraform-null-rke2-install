@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.4](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.3...v1.1.4) (2024-05-25)
+
+
+### Bug Fixes
+
+* address collisions, update tests ([#137](https://github.com/rancher/terraform-null-rke2-install/issues/137)) ([baff869](https://github.com/rancher/terraform-null-rke2-install/commit/baff869e3f3f7ef771d1aaf813bf685ddc53de5d))
+* main splash ([#138](https://github.com/rancher/terraform-null-rke2-install/issues/138)) ([e5956b6](https://github.com/rancher/terraform-null-rke2-install/commit/e5956b633df4e66297744119df738aa4ded80db0))
+* provider fix ([#140](https://github.com/rancher/terraform-null-rke2-install/issues/140)) ([ee25352](https://github.com/rancher/terraform-null-rke2-install/commit/ee25352d47e1b6567749a64a2ab4a8964865851d))
+* reboot and update tests ([#136](https://github.com/rancher/terraform-null-rke2-install/issues/136)) ([3ab5897](https://github.com/rancher/terraform-null-rke2-install/commit/3ab5897ff876e4e6c8839b077fed1a279089d053))
+* retry input output timeout ([#134](https://github.com/rancher/terraform-null-rke2-install/issues/134)) ([d3613b1](https://github.com/rancher/terraform-null-rke2-install/commit/d3613b151bbb025d9d0da86c89830a5dbd94bbac))
+* update validate to new ([#139](https://github.com/rancher/terraform-null-rke2-install/issues/139)) ([ddd8945](https://github.com/rancher/terraform-null-rke2-install/commit/ddd894551b2f5d5772b885ad38eef5c3b4e1eb1f))
+
 ## [1.1.3](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.2...v1.1.3) (2024-05-17)
 
 
