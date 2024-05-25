@@ -32,57 +32,51 @@ jobs:
         if: steps.release-please.outputs.pr
         with:
           token: ${{secrets.GITHUB_TOKEN}}
-      - uses: DeterminateSystems/nix-installer-action@main
-        if: steps.release-please.outputs.pr
-      - uses: nicknovitski/nix-develop@v1.1.0
-        if: steps.release-please.outputs.pr
-        with:
-          arguments: |
-            --ignore-environment \
-            --extra-experimental-features nix-command \
-            --extra-experimental-features flakes \
-            --keep HOME \
-            --keep SSH_AUTH_SOCK \
-            --keep GITHUB_TOKEN \
-            --keep AWS_ROLE \
-            --keep AWS_REGION \
-            --keep AWS_DEFAULT_REGION \
-            --keep AWS_ACCESS_KEY_ID \
-            --keep AWS_SECRET_ACCESS_KEY \
-            --keep AWS_SESSION_TOKEN \
-            --keep UPDATECLI_GPGTOKEN \
-            --keep UPDATECLI_GITHUB_TOKEN \
-            --keep UPDATECLI_GITHUB_ACTOR \
-            --keep GPG_SIGNING_KEY \
-            --keep NIX_ENV_LOADED \
-            --keep TERM \
-            ${{ github.workspace }}
+          fetch-depth: 0
       - uses: aws-actions/configure-aws-credentials@v4
         if: steps.release-please.outputs.pr
         with:
           role-to-assume: ${{env.AWS_ROLE}}
           role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
           aws-region: ${{env.AWS_REGION}}
-      - uses: actions/cache/restore@v4
-        id: cache-terraform-restore
+      - uses: matttrach/nix-installer-action@main
         if: steps.release-please.outputs.pr
-        with:
-          path: ${{ github.workspace }}/.terraform
-          key: terraform-${{hashFiles('**/versions.tf','**/main.tf')}}
-      - run: terraform init -upgrade
+      - name: Check for Leftovers
         if: steps.release-please.outputs.pr
-      - uses: actions/cache/save@v4
-        id: cache-terraform-save
+        shell: 'nix develop --ignore-environment --extra-experimental-features nix-command --extra-experimental-features flakes --keep HOME --keep SSH_AUTH_SOCK --keep GITHUB_TOKEN --keep ZONE --keep AWS_ROLE --keep AWS_REGION --keep AWS_DEFAULT_REGION --keep AWS_ACCESS_KEY_ID --keep AWS_SECRET_ACCESS_KEY --keep AWS_SESSION_TOKEN --keep UPDATECLI_GPGTOKEN --keep UPDATECLI_GITHUB_TOKEN --keep UPDATECLI_GITHUB_ACTOR --keep GPG_SIGNING_KEY --keep NIX_ENV_LOADED --keep TERM --command bash -e {0}'
+        run: |
+          for region in us-west-1 us-west-2 us-east-1 us-east-2; do
+            echo -n "leftovers in $region: "
+            response="$( \
+              leftovers -d --iaas=aws --aws-region="$region" --filter="Owner:terraform-ci" | \
+                grep -v 'AccessDenied' | \
+                grep -v 'status code' | \
+                grep -v 'UnauthorizedOperation' \
+              || true
+            )"
+            if [ -n "$response" ]; then
+              echo "found leftovers: "
+              echo "$response"
+              echo "please clean up leftovers before release testing"
+              exit 1
+            else
+              echo "none found"
+            fi
+          done
+      - name: Run Tests
         if: steps.release-please.outputs.pr
-        with:
-          path: ${{ github.workspace }}/.terraform
-          key: ${{ steps.cache-terraform-restore.outputs.cache-primary-key }}
-      - run: go version && cd ${{github.workspace}}/tests && go test -v -timeout=40m -parallel=10 && cd ${{github.workspace}}
-        if: steps.release-please.outputs.pr
+        shell: 'nix develop --ignore-environment --extra-experimental-features nix-command --extra-experimental-features flakes --keep HOME --keep SSH_AUTH_SOCK --keep GITHUB_TOKEN --keep ZONE --keep AWS_ROLE --keep AWS_REGION --keep AWS_DEFAULT_REGION --keep AWS_ACCESS_KEY_ID --keep AWS_SECRET_ACCESS_KEY --keep AWS_SESSION_TOKEN --keep UPDATECLI_GPGTOKEN --keep UPDATECLI_GITHUB_TOKEN --keep UPDATECLI_GITHUB_ACTOR --keep GPG_SIGNING_KEY --keep NIX_ENV_LOADED --keep TERM --command bash -e {0}'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           GITHUB_OWNER: rancher
           IDENTIFIER: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
+          ZONE: ${{secrets.ZONE}}
+        run: |
+          go version
+          cd ${{github.workspace}}/tests
+          chmod +x ./run_tests.sh
+          ./run_tests.sh
+          cd ${{github.workspace}}
       - uses: peter-evans/create-or-update-comment@v4
         name: 'Report Success'
         if: steps.release-please.outputs.pr

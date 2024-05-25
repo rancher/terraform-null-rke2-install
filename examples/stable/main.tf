@@ -15,7 +15,7 @@ locals {
   username        = "tf-${local.identifier}"
   image           = "sles-15"
   vpc_cidr        = "10.1.0.0/16" # gives 256 usable addresses from .1 to .254, but AWS reserves .1 to .4 and .255, leaving .5 to .254
-  subnet_cidr     = "10.1.255.0/24"
+  subnet_cidr     = "10.1.249.0/24"
   ip              = chomp(data.http.myip.response_body)
   ssh_key         = var.key
   key_name        = var.key_name
