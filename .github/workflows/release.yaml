@@ -69,13 +69,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           GITHUB_OWNER: rancher
-          IDENTIFIER: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
+          IDENTIFIER: ${{github.run_id}}
           ZONE: ${{secrets.ZONE}}
         run: |
-          go version
-          cd ${{github.workspace}}/tests
-          chmod +x ./run_tests.sh
-          ./run_tests.sh
+          chmod +x ${{github.workspace}}/run_tests.sh
+          ${{github.workspace}}/run_tests.sh
           cd ${{github.workspace}}
       - uses: peter-evans/create-or-update-comment@v4
         name: 'Report Success'

@@ -14,9 +14,9 @@ fi
 unset INSTALL_RKE2_CHANNEL;
 unset INSTALL_RKE2_VERSION;
 
-if [ "${RELEASE}" == "latest" ]; then
+if [ "${RELEASE}" = "latest" ]; then
   export INSTALL_RKE2_CHANNEL="${RELEASE}"
-elif [ "${RELEASE}" == "stable" ]; then
+elif [ "${RELEASE}" = "stable" ]; then
   export INSTALL_RKE2_CHANNEL="${RELEASE}"
 else
   export INSTALL_RKE2_VERSION="${RELEASE}"
