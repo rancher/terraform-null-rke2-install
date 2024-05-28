@@ -2,8 +2,6 @@
 set -e
 set -x
 
-# WARNING! You need an active subscription to install all of the necessary packages on SLES!
-
 # Ensure the script is run as root
 if [ "$(id -u)" -ne 0 ]; then
   echo "This script must be run as root" >&2
