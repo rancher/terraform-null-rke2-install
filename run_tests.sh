@@ -26,7 +26,7 @@ EOF
     -- \
     -parallel=10 \
     -timeout=80m \
-    "${1}"
+    "$@"
 }
 
-run_tests
+run_tests "$@"
