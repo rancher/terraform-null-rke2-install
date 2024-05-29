@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.5](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.4...v1.1.5) (2024-05-29)
+
+
+### Bug Fixes
+
+* passing stable test ([#143](https://github.com/rancher/terraform-null-rke2-install/issues/143)) ([d294720](https://github.com/rancher/terraform-null-rke2-install/commit/d2947208d210c4f15290a7b2f1007465d2f290f0))
+* update image names ([#141](https://github.com/rancher/terraform-null-rke2-install/issues/141)) ([eaae44e](https://github.com/rancher/terraform-null-rke2-install/commit/eaae44ef59f0e702f1bbe6ec32a88f7ef84f8004))
+
 ## [1.1.4](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.3...v1.1.4) (2024-05-25)
 
 
