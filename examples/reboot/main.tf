@@ -14,7 +14,7 @@ locals {
   example         = "reboot"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
   username        = "tf-${local.identifier}"
-  image           = "sle-micro-55-byos"
+  image           = "sle-micro-55"
   vpc_cidr        = "10.1.0.0/16" # gives 256 usable addresses from .1 to .254, but AWS reserves .1 to .4 and .255, leaving .5 to .254
   subnet_cidr     = "10.1.250.0/24"
   ip              = chomp(data.http.myip.response_body)
@@ -62,7 +62,7 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v1.0.2"
+  version                    = "v1.0.3"
   image_type                 = local.image
   server_name                = "${local.project_name}-${random_pet.server.id}"
   server_type                = "small"

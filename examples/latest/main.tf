@@ -13,7 +13,7 @@ locals {
   example         = "latest"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
   username        = "tf-${local.identifier}"
-  image           = "sles-15-byos"
+  image           = "sles-15"
   vpc_cidr        = "10.1.0.0/16"
   subnet_cidr     = "10.1.252.0/24"
   ip              = chomp(data.http.myip.response_body)
@@ -61,7 +61,7 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v1.0.1"
+  version                    = "v1.0.3"
   image_type                 = local.image
   server_name                = "${local.project_name}-${random_pet.server.id}"
   server_type                = "small"
