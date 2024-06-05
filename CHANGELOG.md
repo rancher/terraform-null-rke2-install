@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.6](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.5...v1.1.6) (2024-06-05)
+
+
+### Bug Fixes
+
+* bump hashicorp/time from 0.11.1 to 0.11.2 ([#144](https://github.com/rancher/terraform-null-rke2-install/issues/144)) ([35d0cb0](https://github.com/rancher/terraform-null-rke2-install/commit/35d0cb05854482a8c45f9363a31c23950b1e1125))
+* own the configuration ([#145](https://github.com/rancher/terraform-null-rke2-install/issues/145)) ([2c458c2](https://github.com/rancher/terraform-null-rke2-install/commit/2c458c2492c0e01bb2be4c0d87433faa7fe9f9cc))
+
 ## [1.1.5](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.4...v1.1.5) (2024-05-29)
 
 
