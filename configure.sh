@@ -6,4 +6,6 @@ install -d "${REMOTE_PATH}"
 cd "${REMOTE_PATH}"
 install -d /etc/rancher/rke2/config.yaml.d
 find ./ -name '*.yaml' -exec cp -prv '{}' '/etc/rancher/rke2/config.yaml.d/' ';'
+chown -R root:root /etc/rancher/rke2/config.yaml.d
+chmod -R 0644 /etc/rancher/rke2/config.yaml.d
 ls -lah /etc/rancher/rke2/config.yaml.d
