@@ -23,6 +23,7 @@ func TestCandidate(t *testing.T) {
 		"rpm_channel":  "testing",
 	}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
+	delete(terraformOptions.Vars, "key_name")
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
 	defer sshAgent.Stop()

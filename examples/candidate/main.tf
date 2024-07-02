@@ -17,7 +17,6 @@ locals {
   image           = "rhel-9"
   ip              = chomp(data.http.myip.response_body)
   ssh_key         = var.key
-  key_name        = var.key_name
   rke2_version    = var.rke2_version
   rpm_channel     = var.rpm_channel
   local_file_path = "${path.root}/data/${local.identifier}"
@@ -37,10 +36,6 @@ resource "random_pet" "server" {
     identifier = local.identifier
   }
   length = 1
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
 }
 
 module "access" {

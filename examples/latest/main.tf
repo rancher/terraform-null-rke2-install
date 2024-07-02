@@ -37,10 +37,6 @@ resource "random_pet" "server" {
   length = 1
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 module "access" {
   source                     = "rancher/access/aws"
   version                    = "v3.0.1"

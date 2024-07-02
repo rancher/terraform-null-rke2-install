@@ -23,6 +23,7 @@ func TestBasic(t *testing.T) {
 	owner := "terraform-ci@suse.com"
 	terraformVars := map[string]interface{}{}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
+	delete(terraformOptions.Vars, "key_name")
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
 	defer sshAgent.Stop()
@@ -32,16 +33,16 @@ func TestBasic(t *testing.T) {
 	defer terraform.Destroy(t, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
 
-	out := terraform.OutputAll(t,terraformOptions)
-  t.Logf("out: %v", out)
-  outputServer, ok := out["server"].(map[string]interface{})
-  assert.True(t, ok, fmt.Sprintf("Wrong data type for 'server', expected map[string], got %T", out["server"]))
-  outputImage, ok := out["image"].(map[string]interface{})
-  assert.True(t, ok, fmt.Sprintf("Wrong data type for 'image', expected map[string], got %T", out["image"]))
-  outputKubeconfig, ok := out["kubeconfig"].(string)
-  assert.True(t, ok, fmt.Sprintf("Wrong data type for 'kubeconfig', expected string, got %T", out["kubeconfig"]))
+	out := terraform.OutputAll(t, terraformOptions)
+	t.Logf("out: %v", out)
+	outputServer, ok := out["server"].(map[string]interface{})
+	assert.True(t, ok, fmt.Sprintf("Wrong data type for 'server', expected map[string], got %T", out["server"]))
+	outputImage, ok := out["image"].(map[string]interface{})
+	assert.True(t, ok, fmt.Sprintf("Wrong data type for 'image', expected map[string], got %T", out["image"]))
+	outputKubeconfig, ok := out["kubeconfig"].(string)
+	assert.True(t, ok, fmt.Sprintf("Wrong data type for 'kubeconfig', expected string, got %T", out["kubeconfig"]))
 
 	assert.NotEmpty(t, outputKubeconfig, "The 'kubeconfig' is empty")
 	assert.NotEmpty(t, outputServer["public_ip"], "The 'server.public_ip' is empty")
-  assert.NotEmpty(t, outputImage["id"], "The 'image.id' is empty")
+	assert.NotEmpty(t, outputImage["id"], "The 'image.id' is empty")
 }

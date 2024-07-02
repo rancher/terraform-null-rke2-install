@@ -2,7 +2,8 @@
 provider "aws" {
   default_tags {
     tags = {
-      ID = local.identifier
+      ID    = local.identifier
+      Owner = local.email
     }
   }
 }
@@ -12,13 +13,11 @@ locals {
   identifier   = var.identifier
   example      = "byob"
   project_name = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
-  name         = "tf-byob-${local.identifier}"
   username     = substr(lower("tf-${local.identifier}"), 0, 32)
   rke2_version = var.rke2_version
   image        = "sles-15"
   ip           = chomp(data.http.myip.response_body)
   ssh_key      = var.key
-  key_name     = var.key_name
   config       = (can(file("${path.root}/rke2/rke2-config.yaml")) ? file("${path.root}/rke2/rke2-config.yaml") : "")
 }
 
@@ -36,10 +35,6 @@ resource "random_pet" "server" {
     identifier = local.identifier
   }
   length = 1
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
 }
 
 module "access" {
