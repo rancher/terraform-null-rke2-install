@@ -21,6 +21,14 @@ terraform {
       source  = "hashicorp/http"
       version = ">= 3.4"
     }
+    acme = { # used in the access module
+      source  = "vancluever/acme"
+      version = ">= 2.0"
+    }
+    github = {
+      source  = "integrations/github"
+      version = "6.2.1"
+    }
   }
 }
 provider "acme" {
