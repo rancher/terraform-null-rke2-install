@@ -8,56 +8,93 @@ provider "aws" {
 }
 
 locals {
-  email          = "terraform-ci@suse.com"
-  identifier     = var.identifier
-  name           = "tf-byob-${local.identifier}"
-  username       = "tf-${local.identifier}"
-  rke2_version   = var.rke2_version
-  public_ssh_key = var.key
-  key_name       = var.key_name
-  config         = (can(file("${path.root}/rke2/rke2-config.yaml")) ? file("${path.root}/rke2/rke2-config.yaml") : "")
+  email        = "terraform-ci@suse.com"
+  identifier   = var.identifier
+  example      = "byob"
+  project_name = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
+  name         = "tf-byob-${local.identifier}"
+  username     = substr(lower("tf-${local.identifier}"), 0, 32)
+  rke2_version = var.rke2_version
+  image        = "sles-15"
+  ip           = chomp(data.http.myip.response_body)
+  ssh_key      = var.key
+  key_name     = var.key_name
+  config       = (can(file("${path.root}/rke2/rke2-config.yaml")) ? file("${path.root}/rke2/rke2-config.yaml") : "")
 }
 
-module "aws_access" {
-  source              = "rancher/access/aws"
-  version             = "v1.1.1"
-  owner               = local.email
-  vpc_name            = "default"
-  subnet_name         = "default"
-  security_group_name = local.name
-  security_group_type = "specific" # https://github.com/rancher/terraform-aws-access/blob/main/modules/security_group/types.tf
-  ssh_key_name        = local.key_name
+data "http" "myip" {
+  url = "https://ipinfo.io/ip"
+  retry {
+    attempts     = 2
+    min_delay_ms = 1000
+  }
 }
 
-module "aws_server" {
-  depends_on          = [module.aws_access]
-  source              = "rancher/server/aws"
-  version             = "v0.3.0"
-  image               = "sles-15" # https://github.com/rancher/terraform-aws-server/blob/main/modules/image/types.tf
-  owner               = local.email
-  name                = local.name
-  type                = "medium" # https://github.com/rancher/terraform-aws-server/blob/main/modules/server/types.tf
-  user                = local.username
-  ssh_key             = local.public_ssh_key
-  ssh_key_name        = local.key_name
-  subnet_name         = "default"
-  security_group_name = module.aws_access.security_group.name
+resource "random_pet" "server" {
+  keepers = {
+    # regenerate the pet name when the identifier changes
+    identifier = local.identifier
+  }
+  length = 1
 }
 
-module "TestByob" {
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+module "access" {
+  source                     = "rancher/access/aws"
+  version                    = "v3.0.1"
+  vpc_name                   = "${local.project_name}-vpc"
+  vpc_public                 = true
+  security_group_name        = "${local.project_name}-sg"
+  security_group_type        = "project"
+  load_balancer_use_strategy = "skip"
+}
+
+module "server" {
   depends_on = [
-    module.aws_access,
-    module.aws_server,
+    module.access,
   ]
-  source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  # version = "v0.2.7" # when using this example you will need to set the version
+  source                     = "rancher/server/aws"
+  version                    = "v1.1.0"
+  image_type                 = local.image
+  server_name                = "${local.project_name}-${random_pet.server.id}"
+  server_type                = "small"
+  subnet_name                = keys(module.access.subnets)[0]
+  security_group_name        = module.access.security_group.tags_all.Name
+  direct_access_use_strategy = "ssh"     # either the subnet needs to be public or you must add an eip
+  cloudinit_use_strategy     = "default" # use the default cloudinit config
+  server_access_addresses = {            # you must include ssh access here to enable setup
+    "runner" = {
+      port     = 22
+      protocol = "tcp"
+      cidrs    = ["${local.ip}/32"]
+    }
+  }
+  server_user = {
+    user                     = local.username
+    aws_keypair_use_strategy = "skip"        # we will use cloud-init to add a keypair directly
+    ssh_key_name             = ""            # not creating or selecting a key, but this field is still required
+    public_ssh_key           = local.ssh_key # ssh key to add via cloud-init
+    user_workfolder          = "/home/${local.username}"
+    timeout                  = 5
+  }
+}
+
+module "this" {
+  depends_on = [
+    module.access,
+    module.server,
+  ]
+  source          = "../../" # dev/test only source, for proper source see https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   local_file_path = "${abspath(path.root)}/rke2"
-  ssh_ip          = module.aws_server.public_ip
+  ssh_ip          = module.server.server.public_ip
   ssh_user        = local.username
   release         = local.rke2_version
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
-    module.aws_server.id,
+    module.server.server.id,
     local.rke2_version,
     local.config,
   ]))

@@ -4,17 +4,15 @@ run_tests() {
   if [ -d "./tests" ]; then
     cd tests
   fi
+  if [ -d "./test" ]; then
+    cd test
+  fi
   cat <<'EOF'> /tmp/test-processor
 echo "Passed: "
-cat /tmp/test.log | jq -r '. | select(.Action == "pass") | select(.Test != null).Test'
+jq -r '. | select(.Action == "pass") | select(.Test != null).Test' /tmp/test.log
 echo " "
 echo "Failed: "
-FAILED_TESTS="$(jq -r '. | select(.Action == "fail") | select(.Test != null).Test' /tmp/test.log)"
-for TEST in $FAILED_TESTS; do
-  echo "$TEST"
-  grep $TEST /tmp/test.log | grep '        \\t' | jq '.Output' | sed 's/\\t\|\\n\|\\\|"        //g'
-  echo " "
-done
+jq -r '. | select(.Action == "fail") | select(.Test != null).Test' /tmp/test.log
 echo " "
 EOF
   chmod +x /tmp/test-processor

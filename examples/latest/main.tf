@@ -12,10 +12,8 @@ locals {
   email           = "terraform-ci@suse.com"
   example         = "latest"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
-  username        = "tf-${local.identifier}"
+  username        = substr(lower("tf-${local.identifier}"), 0, 32)
   image           = "sles-15"
-  vpc_cidr        = "10.1.0.0/16"
-  subnet_cidr     = "10.1.252.0/24"
   ip              = chomp(data.http.myip.response_body)
   ssh_key         = var.key
   key_name        = var.key_name
@@ -25,6 +23,10 @@ locals {
 
 data "http" "myip" {
   url = "https://ipinfo.io/ip"
+  retry {
+    attempts     = 2
+    min_delay_ms = 1000
+  }
 }
 
 resource "random_pet" "server" {
@@ -40,17 +42,9 @@ data "aws_availability_zones" "available" {
 }
 
 module "access" {
-  source   = "rancher/access/aws"
-  version  = "v2.1.2"
-  vpc_name = "${local.project_name}-vpc"
-  vpc_cidr = local.vpc_cidr
-  subnets = {
-    "${local.project_name}-sn" = {
-      cidr              = local.subnet_cidr
-      availability_zone = data.aws_availability_zones.available.names[0]
-      public            = false # only provision private ips for this subnet
-    }
-  }
+  source                     = "rancher/access/aws"
+  version                    = "v3.0.1"
+  vpc_name                   = "${local.project_name}-vpc"
   security_group_name        = "${local.project_name}-sg"
   security_group_type        = "project"
   load_balancer_use_strategy = "skip"
@@ -61,11 +55,11 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v1.0.3"
+  version                    = "v1.1.0"
   image_type                 = local.image
   server_name                = "${local.project_name}-${random_pet.server.id}"
   server_type                = "small"
-  subnet_name                = module.access.subnets[keys(module.access.subnets)[0]].tags_all.Name
+  subnet_name                = keys(module.access.subnets)[0]
   security_group_name        = module.access.security_group.tags_all.Name
   direct_access_use_strategy = "ssh"  # either the subnet needs to be public or you must add an eip
   cloudinit_use_strategy     = "skip" # sle-micro-55 doesn't have cloudinit
@@ -106,8 +100,7 @@ module "this" {
     module.server,
     module.config,
   ]
-  source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  # version = "v0.2.7" # when using this example you will need to set the version
+  source                     = "../../" # dev/test only source, for proper source see https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   ssh_ip                     = module.server.server.public_ip
   ssh_user                   = local.username
   release                    = local.rke2_version
