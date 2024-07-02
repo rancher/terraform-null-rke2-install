@@ -20,7 +20,6 @@ func TestStable(t *testing.T) {
 	owner := "terraform-ci@suse.com"
 	terraformVars := map[string]interface{}{}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
-	delete(terraformOptions.Vars, "key_name")
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
 	defer sshAgent.Stop()
