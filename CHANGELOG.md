@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.6...v1.2.0) (2024-07-02)
+
+
+### Features
+
+* update to latest access module ([#147](https://github.com/rancher/terraform-null-rke2-install/issues/147)) ([1e7f3df](https://github.com/rancher/terraform-null-rke2-install/commit/1e7f3df1187102a2961f06595f3b9564b8fda5ad))
+
+
+### Bug Fixes
+
+* examples need key name ([#149](https://github.com/rancher/terraform-null-rke2-install/issues/149)) ([6701755](https://github.com/rancher/terraform-null-rke2-install/commit/6701755109a53fc6e4fbebf1b59e3d6cc26e5beb))
+* latest test needs key name ([#150](https://github.com/rancher/terraform-null-rke2-install/issues/150)) ([658ad18](https://github.com/rancher/terraform-null-rke2-install/commit/658ad18436725216f7fba8dd813acf604f1528b3))
+* tests need provider info ([#151](https://github.com/rancher/terraform-null-rke2-install/issues/151)) ([24344f6](https://github.com/rancher/terraform-null-rke2-install/commit/24344f6ad34a7ddd138e9beef0375bd0501209fa))
+
 ## [1.1.6](https://github.com/rancher/terraform-null-rke2-install/compare/v1.1.5...v1.1.6) (2024-06-05)
 
 
