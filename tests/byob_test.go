@@ -30,7 +30,6 @@ func TestByobConfigChange(t *testing.T) {
 		"rke2_version": release,
 	}
 	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
-	delete(terraformOptions.Vars, "key_name")
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
 	defer sshAgent.Stop()
