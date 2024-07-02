@@ -13,13 +13,10 @@ locals {
   email           = "terraform-ci@suse.com"
   example         = "candidate"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
-  username        = "tf-${local.identifier}"
+  username        = substr(lower("tf-${local.identifier}"), 0, 32)
   image           = "rhel-9"
-  vpc_cidr        = "10.1.0.0/16"
-  subnet_cidr     = "10.1.254.0/24"
   ip              = chomp(data.http.myip.response_body)
   ssh_key         = var.key
-  key_name        = var.key_name
   rke2_version    = var.rke2_version
   rpm_channel     = var.rpm_channel
   local_file_path = "${path.root}/data/${local.identifier}"
@@ -27,6 +24,10 @@ locals {
 
 data "http" "myip" {
   url = "https://ipinfo.io/ip"
+  retry {
+    attempts     = 2
+    min_delay_ms = 1000
+  }
 }
 
 resource "random_pet" "server" {
@@ -37,22 +38,11 @@ resource "random_pet" "server" {
   length = 1
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 module "access" {
-  source   = "rancher/access/aws"
-  version  = "v2.1.2"
-  vpc_name = "${local.project_name}-vpc"
-  vpc_cidr = local.vpc_cidr
-  subnets = {
-    "${local.project_name}-sn" = {
-      cidr              = local.subnet_cidr
-      availability_zone = data.aws_availability_zones.available.names[0]
-      public            = false # only provision private ips for this subnet
-    }
-  }
+  source                     = "rancher/access/aws"
+  version                    = "v3.0.1"
+  vpc_name                   = "${local.project_name}-vpc"
+  vpc_public                 = true
   security_group_name        = "${local.project_name}-sg"
   security_group_type        = "project"
   load_balancer_use_strategy = "skip"
@@ -63,31 +53,25 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v1.0.3"
+  version                    = "v1.1.0"
   image_type                 = local.image
   server_name                = "${local.project_name}-${random_pet.server.id}"
   server_type                = "small"
-  subnet_name                = module.access.subnets[keys(module.access.subnets)[0]].tags_all.Name
+  subnet_name                = keys(module.access.subnets)[0]
   security_group_name        = module.access.security_group.tags_all.Name
-  direct_access_use_strategy = "ssh"  # either the subnet needs to be public or you must add an eip
-  cloudinit_use_strategy     = "skip" # sle-micro-55 doesn't have cloudinit
-  add_eip                    = true   # adding an eip to allow setup
-  server_access_addresses = {         # you must include ssh access here to enable setup
-    "runnerSsh" = {
+  direct_access_use_strategy = "ssh"     # either the subnet needs to be public or you must add an eip
+  cloudinit_use_strategy     = "default" # use the default cloudinit config
+  server_access_addresses = {            # you must include ssh access here to enable setup
+    "runner" = {
       port     = 22
-      protocol = "tcp"
-      cidrs    = ["${local.ip}/32"]
-    }
-    "runnerKube" = {
-      port     = 6443
       protocol = "tcp"
       cidrs    = ["${local.ip}/32"]
     }
   }
   server_user = {
     user                     = local.username
-    aws_keypair_use_strategy = "select"
-    ssh_key_name             = local.key_name
+    aws_keypair_use_strategy = "skip"        # we will use cloud-init to add a keypair directly
+    ssh_key_name             = ""            # not creating or selecting a key, but this field is still required
     public_ssh_key           = local.ssh_key # ssh key to add via cloud-init
     user_workfolder          = "/home/${local.username}"
     timeout                  = 5
@@ -108,8 +92,7 @@ module "this" {
     module.server,
     module.config,
   ]
-  source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  # version = "v0.2.7" # when using this example you will need to set the version
+  source              = "../../" # dev/test only source, for proper source see https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   ssh_ip              = module.server.server.public_ip
   ssh_user            = local.username
   release             = local.rke2_version
@@ -117,8 +100,8 @@ module "this" {
   local_file_path     = local.local_file_path
   retrieve_kubeconfig = true
   install_method      = "rpm"
-  server_prep_script  = file("${path.root}/prep.sh")
   remote_workspace    = module.server.image.workfolder
+  server_prep_script  = file("${path.root}/prep.sh")
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.server.server.id,

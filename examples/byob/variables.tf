@@ -2,10 +2,6 @@ variable "key" {
   type        = string
   description = "The content of the public ssh key to use."
 }
-variable "key_name" {
-  type        = string
-  description = "The name of the ssh key pair to use, must already exist in AWS and have a corresponding 'Name' tag."
-}
 variable "rke2_version" {
   type        = string
   description = "The version of rke2 to install, must be a valid tag name like v1.21.6+rke2r1."
