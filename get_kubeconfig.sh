@@ -7,7 +7,7 @@ export REMOTE_PATH="${2}"
 export IP="${3}"
 export SSH_USER="${4}"
 
-if [ "" != "$(grep ':' <<< ${IP})" ]; then
+if [ "" != "$(echo "${IP}" | grep ':')" ]; then
   # ipv6
   scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${SSH_USER}"@\["${IP}"\]:"${REMOTE_PATH}" "${FILE}"
 else
