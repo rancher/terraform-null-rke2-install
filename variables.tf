@@ -155,7 +155,7 @@ variable "start_timeout" {
   type        = string
   description = <<-EOT
     The number of minutes to wait for rke2 to start.
-    This defaults to '5' which will translate to 5 minutes / 300 seconds.
+    This defaults to '10' which will translate to 10 minutes / 600 seconds.
   EOT
-  default     = "5"
+  default     = "10"
 }
