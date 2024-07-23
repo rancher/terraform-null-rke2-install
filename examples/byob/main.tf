@@ -93,4 +93,5 @@ module "this" {
     local.rke2_version,
     local.config,
   ]))
+  start_timeout = 10
 }
