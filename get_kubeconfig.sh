@@ -16,3 +16,4 @@ else
 fi
 
 sed -i "s/127.0.0.1/${IP}/g" "${FILE}" || sed -i '' "s/127.0.0.1/${IP}/g" "${FILE}"
+sed -i "s/::1/${IP}/g" "${FILE}" || sed -i '' "s/::1/${IP}/g" "${FILE}"
