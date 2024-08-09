@@ -171,7 +171,7 @@ resource "null_resource" "install" {
     inline = [<<-EOT
       set -x
       set -e
-      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be 01."
+      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be low."
       sudo chmod +x "${local.remote_workspace}/install.sh"
       sudo ${local.remote_workspace}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}" "${local.channel}"
     EOT
@@ -232,7 +232,7 @@ resource "null_resource" "prep" {
     inline = [<<-EOT
       set -x
       set -e
-      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be 01."
+      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be low."
       sudo chmod +x "${local.remote_workspace}/prep.sh"
       sudo ${local.remote_workspace}/prep.sh
     EOT
