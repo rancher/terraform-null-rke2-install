@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.0](https://github.com/rancher/terraform-null-rke2-install/compare/v1.2.3...v1.3.0) (2024-08-28)
+
+
+### Features
+
+* add manifests after install before start ([#162](https://github.com/rancher/terraform-null-rke2-install/issues/162)) ([d9352d3](https://github.com/rancher/terraform-null-rke2-install/commit/d9352d3da2ec4956e11d90dea095f2b819f81b3d))
+
+
+### Bug Fixes
+
+* release ([#164](https://github.com/rancher/terraform-null-rke2-install/issues/164)) ([82c47a2](https://github.com/rancher/terraform-null-rke2-install/commit/82c47a2536d2c9d8b6b6591d95aa7ff050d6ade0))
+* retry if curl fails to connect ([#165](https://github.com/rancher/terraform-null-rke2-install/issues/165)) ([1a0ae24](https://github.com/rancher/terraform-null-rke2-install/commit/1a0ae245dda2b4970d03c0d523cf88ee78a647f9))
+
 ## [1.2.3](https://github.com/rancher/terraform-null-rke2-install/compare/v1.2.2...v1.2.3) (2024-08-09)
 
 
