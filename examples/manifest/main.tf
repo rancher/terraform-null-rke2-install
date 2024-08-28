@@ -10,7 +10,7 @@ provider "aws" {
 locals {
   identifier      = var.identifier # this is a random unique string that can be used to identify resources in the cloud provider
   email           = "terraform-ci@suse.com"
-  example         = "basic"
+  example         = "manifest"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
   username        = substr(lower("tf-${local.identifier}"), 0, 32)
   image           = "sle-micro-60"
@@ -42,7 +42,7 @@ module "access" {
   vpc_name                   = "${local.project_name}-vpc"
   vpc_public                 = true
   security_group_name        = "${local.project_name}-sg"
-  security_group_type        = "project"
+  security_group_type        = "egress"
   load_balancer_use_strategy = "skip"
 }
 
@@ -92,6 +92,7 @@ module "config" {
   source          = "rancher/rke2-config/local"
   version         = "v0.1.4"
   local_file_path = local.local_file_path
+  cni             = ["none"] # install cilium with helm chart in manifests directory
 }
 
 # everything before this module is not necessary, you can generate the resources manually or use other methods
@@ -104,12 +105,13 @@ module "this" {
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   # version = "v0.2.7" # when using this example you will need to set the version
-  ssh_ip              = module.server.server.public_ip
-  ssh_user            = local.username
-  release             = local.rke2_version
-  local_file_path     = local.local_file_path
-  retrieve_kubeconfig = true
-  remote_workspace    = module.server.image.workfolder
+  ssh_ip               = module.server.server.public_ip
+  ssh_user             = local.username
+  release              = local.rke2_version
+  local_file_path      = local.local_file_path
+  local_manifests_path = "${path.root}/manifests"
+  retrieve_kubeconfig  = true
+  remote_workspace     = module.server.image.workfolder
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.server.server.id,

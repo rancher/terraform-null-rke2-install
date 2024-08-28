@@ -27,6 +27,13 @@ variable "role" {
   EOT
   default     = "server"
 }
+variable "local_manifests_path" {
+  type        = string
+  description = <<-EOT
+    The local path to a directory with manifests that will be copied to the /var/lib/rancher/rke2/server/manifests directory on the server.
+  EOT
+  default     = ""
+}
 variable "local_file_path" {
   type        = string
   description = <<-EOT
