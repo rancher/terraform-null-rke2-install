@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+
 	//"log"
 	"os"
 	"path/filepath"
@@ -90,8 +91,9 @@ func setup(t *testing.T, directory string, region string, owner string, id strin
 			"AWS_DEFAULT_REGION": region,
 		},
 		RetryableTerraformErrors: retryableTerraformErrors,
-		NoColor: true,
-		MaxRetries: 20,
+		NoColor:                  true,
+		MaxRetries:               20,
+		Upgrade:                  true,
 	})
 	return terraformOptions, keyPair
 }

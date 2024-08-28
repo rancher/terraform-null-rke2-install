@@ -1,0 +1,8 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cilium 
+  namespace: kube-system
+spec:
+  bootstrap: true
+  chart: https://raw.githubusercontent.com/cilium/charts/master/cilium-1.16.1.tgz

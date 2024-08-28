@@ -9,6 +9,7 @@ locals {
   identifier                 = var.identifier
   local_file_path            = var.local_file_path
   local_path                 = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
+  local_manifests_path       = var.local_manifests_path
   remote_workspace           = ((var.remote_workspace == "~" || var.remote_workspace == "") ? "/home/${local.ssh_user}" : var.remote_workspace) # https://github.com/hashicorp/terraform/issues/30243
   remote_path                = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
   retrieve_kubeconfig        = var.retrieve_kubeconfig
@@ -195,6 +196,49 @@ resource "time_sleep" "ten_s_after_install" {
   ]
   create_duration = "10s"
 }
+
+# copy manifests to remote server after install, but before start
+resource "terraform_data" "copy_manifests" {
+  count = (local.local_manifests_path == "" ? 0 : 1)
+  depends_on = [
+    terraform_data.copy_to_remote,
+    null_resource.configure,
+    null_resource.install_prep,
+    time_sleep.ten_s_before_install,
+    null_resource.install,
+    time_sleep.ten_s_after_install,
+  ]
+  triggers_replace = local.identifier
+  connection {
+    type        = "ssh"
+    user        = local.ssh_user
+    script_path = "${local.remote_workspace}/copy_manifests_terraform"
+    agent       = true
+    host        = local.ssh_ip
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      echo "Connected!"
+    EOT
+    ]
+  }
+  provisioner "file" {
+    source      = local.local_manifests_path
+    destination = "${local.remote_path}/manifests"
+  }
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      set -x
+      set -e
+      ls -lah ${local.remote_path}/manifests
+      sudo install -d /var/lib/rancher/rke2/server/manifests
+      sudo cp ${local.remote_path}/manifests/* /var/lib/rancher/rke2/server/manifests
+      ls -lah /var/lib/rancher/rke2/server/manifests
+    EOT
+    ]
+  }
+}
+
 # optionally run a script on the server before starting rke2
 # this can be used to mitigate OS specific issues or configuration
 resource "null_resource" "prep" {
@@ -206,6 +250,7 @@ resource "null_resource" "prep" {
     time_sleep.ten_s_before_install,
     null_resource.install,
     time_sleep.ten_s_after_install,
+    terraform_data.copy_manifests,
   ]
   triggers = {
     id     = local.identifier,
@@ -254,6 +299,7 @@ resource "time_sleep" "ten_s_before_start" {
     time_sleep.ten_s_before_install,
     null_resource.install,
     time_sleep.ten_s_after_install,
+    terraform_data.copy_manifests,
     null_resource.prep,
   ]
   create_duration = "10s"
@@ -268,6 +314,7 @@ resource "null_resource" "start" {
     time_sleep.ten_s_before_install,
     null_resource.install,
     time_sleep.ten_s_after_install,
+    terraform_data.copy_manifests,
     null_resource.prep,
     time_sleep.ten_s_before_start,
   ]
@@ -308,9 +355,13 @@ resource "null_resource" "get_kubeconfig" {
     terraform_data.copy_to_remote,
     null_resource.configure,
     null_resource.install_prep,
+    time_sleep.ten_s_before_install,
     null_resource.install,
-    null_resource.start,
+    time_sleep.ten_s_after_install,
+    terraform_data.copy_manifests,
     null_resource.prep,
+    time_sleep.ten_s_before_start,
+    null_resource.start,
   ]
   triggers = {
     id = local.identifier,
@@ -357,10 +408,14 @@ data "local_sensitive_file" "kubeconfig" {
     terraform_data.copy_to_remote,
     null_resource.configure,
     null_resource.install_prep,
+    time_sleep.ten_s_before_install,
     null_resource.install,
+    time_sleep.ten_s_after_install,
+    terraform_data.copy_manifests,
+    null_resource.prep,
+    time_sleep.ten_s_before_start,
     null_resource.start,
     null_resource.get_kubeconfig,
-    null_resource.prep,
   ]
   filename = "${local.local_path}/kubeconfig"
 }
