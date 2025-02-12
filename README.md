@@ -47,6 +47,8 @@ generally that is:
 - `"rke2.${local.system}-${local.arch}.tar.gz"`
 - `"sha256sum-${local.arch}.txt"`
 
+If you do not want to download these files manually, you may use the [rancher/rke2-download/github](https://github.com/rancher/terraform-github-rke2-download) module to download the files automatically into your specified path for consumption within this module.
+
 ## Examples
 
 We have a few example implementations to get you started, these examples are tested in our CI before release.
