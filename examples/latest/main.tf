@@ -39,10 +39,10 @@ resource "random_pet" "server" {
 
 module "access" {
   source                     = "rancher/access/aws"
-  version                    = "v3.0.1"
+  version                    = "v3.1.12"
   vpc_name                   = "${local.project_name}-vpc"
   security_group_name        = "${local.project_name}-sg"
-  security_group_type        = "project"
+  security_group_type        = "egress"
   load_balancer_use_strategy = "skip"
 }
 
@@ -51,7 +51,7 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v1.1.0"
+  version                    = "v1.4.0"
   image_type                 = local.image
   server_name                = "${local.project_name}-${random_pet.server.id}"
   server_type                = "small"
@@ -62,14 +62,16 @@ module "server" {
   add_eip                    = true   # adding an eip to allow setup
   server_access_addresses = {         # you must include ssh access here to enable setup
     "runnerSsh" = {
-      port     = 22
-      protocol = "tcp"
-      cidrs    = ["${local.ip}/32"]
+      port      = 22
+      protocol  = "tcp"
+      cidrs     = ["${local.ip}/32"]
+      ip_family = "ipv4"
     }
     "runnerKube" = {
-      port     = 6443
-      protocol = "tcp"
-      cidrs    = ["${local.ip}/32"]
+      port      = 6443
+      protocol  = "tcp"
+      cidrs     = ["${local.ip}/32"]
+      ip_family = "ipv4"
     }
   }
   server_user = {
@@ -84,7 +86,7 @@ module "server" {
 
 module "config" {
   source          = "rancher/rke2-config/local"
-  version         = "v0.1.3"
+  version         = "v1.0.0"
   local_file_path = local.local_file_path
 }
 

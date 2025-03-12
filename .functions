@@ -11,6 +11,9 @@ git_status() {
       fi
     fi
 }
+get_repo_basename() {
+  basename "$(git rev-parse --show-toplevel)"
+}
 
 get_repo_owner() {
   REPO="$(basename "$(git rev-parse --show-toplevel)")"
@@ -201,8 +204,10 @@ run_tests() {
 }
 
 get_leftovers() {
-  id=$1
+  reg=$1
+  id=$2
   for region in us-west-1 us-west-2 us-east-1 us-east-2; do
+    if [ -n "$reg" ] && [ "$region" != "$reg" ]; then continue; fi
     echo "leftovers in $region:"
     if [ -n "$id" ]; then
       leftovers -d --iaas=aws --aws-region="$region" --filter="$id";

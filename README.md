@@ -1,6 +1,6 @@
 # Terraform RKE2 Install
 
-This module installs RKE2 on any Linux based server.
+This module installs RKE2 on most Linux based servers.
 
 ## Requirements
 
@@ -15,6 +15,7 @@ We recommend setting the following environment variables for quick personal use:
 
 ```shell
 GITHUB_TOKEN
+GITHUB_OWNER
 AWS_REGION
 AWS_SECRET_ACCESS_KEY
 AWS_ACCESS_KEY_ID
@@ -28,10 +29,6 @@ You will need Curl available on the server running Terraform.
 
 You will need write access to the filesystem on the server running Terraform.
 If downloading the files from GitHub, then you will need about 3GB storage space available in the 'local_file_path' location (defaults to ./rke2).
-
-#### Terraform Version
-
-We specify the Terraform version < 1.6 to avoid potential license issues and version > 1.5.0.
 
 ## RKE2 Config
 
@@ -73,13 +70,8 @@ It is important to us that all collaborators have the ability to develop in simi
 These tools are not necessary, but they can make it much simpler to collaborate.
 
 * I use [nix](https://nixos.org/) that I have installed using [their recommended script](https://nixos.org/download.html#nix-install-macos)
-* I use [direnv](https://direnv.net/) that I have installed using brew.
-* I simply use `direnv allow` to enter the environment
-* I navigate to the `tests` directory and run `go test -v -timeout=40m -parallel=10`
-  * It is important to note that the test files do not stand alone, they expect to run as a package.
-  * This means that specifying the file to test (as follows) will fail: `go test -v -timeout 40m -parallel 10 basic_test.go`
-* To run an individual test I navigate to the `tests` directory and run `go test -v -timeout 40m -parallel 10 -run="<test function name>"`
-  * eg. `go test -v -timeout 40m -parallel 10 -run TestBasic`
+* I source `source .envrc` to enter the environment
+* I use the `run_tests.sh` script to validate any change
 * I store my credentials in a local files and generate a symlink to them
   * eg. `~/.config/github/default/rc`
   * this will be automatically sourced when you enter the nix environment (and unloaded when you leave)

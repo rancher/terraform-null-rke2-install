@@ -35,9 +35,9 @@ else
   export INSTALL_RKE2_ARTIFACT_PATH="${REMOTE_PATH}";
 fi
 if [ ! -f "${REMOTE_PATH}"/install.sh ]; then
-  curl -sfL https://get.rke2.io -o "${REMOTE_PATH}"/install.sh
+  curl -vfL https://get.rke2.io -o "${REMOTE_PATH}"/install.sh
 fi
 
 chmod +x "${REMOTE_PATH}"/install.sh
+echo "running install script..."
 "${REMOTE_PATH}"/install.sh
-

@@ -1,4 +1,4 @@
-module github.com/rancher/terraform-github-rke2-install
+module github.com/rancher/terraform-null-rke2-install/test/tests
 
 go 1.20
 
