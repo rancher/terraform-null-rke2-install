@@ -1,11 +1,5 @@
 #!/bin/sh
 
-# Check if running as root
-if [[ $EUID -ne 0 ]]; then
-  echo "This script must be run as root."
-  exit 1
-fi
-
 #https://docs.rke2.io/known_issues
 systemctl disable --now firewalld
 systemctl stop firewalld
@@ -29,7 +23,7 @@ systemctl stop nm-cloud-setup.timer
 systemctl disable nm-cloud-setup.timer
 
 # Backup GRUB configuration
-if [[ -f /etc/default/grub ]]; then
+if [ -f /etc/default/grub ]; then
   cp /etc/default/grub /etc/default/grub.bak
   echo "Backed up /etc/default/grub to /etc/default/grub.bak"
 else
@@ -60,10 +54,10 @@ else
 fi
 
 # Update GRUB configuration
-if [[ -f /boot/efi/EFI/redhat/grub.cfg ]]; then
+if [ -f /boot/efi/EFI/redhat/grub.cfg ]; then
   grub2-mkconfig -o /boot/efi/EFI/redhat/grub.cfg
   echo "Updated /boot/efi/EFI/redhat/grub.cfg"
-elif [[ -f /boot/grub2/grub.cfg ]]; then
+elif [ -f /boot/grub2/grub.cfg ]; then
   grub2-mkconfig -o /boot/grub2/grub.cfg
   echo "Updated /boot/grub2/grub.cfg"
 else
