@@ -19,11 +19,13 @@ GITHUB_OWNER
 AWS_REGION
 AWS_SECRET_ACCESS_KEY
 AWS_ACCESS_KEY_ID
+ZONE
 ```
 
 #### Curl
 
 You will need Curl available on the server running Terraform.
+The server installing RKE2 will also need Curl, please see the examples.
 
 #### Local Filesystem Write Access
 
