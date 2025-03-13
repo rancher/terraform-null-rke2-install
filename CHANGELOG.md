@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.0...v1.3.1) (2025-03-13)
+
+
+### Bug Fixes
+
+* remove version constraints ([#169](https://github.com/rancher/terraform-null-rke2-install/issues/169)) ([4bb400b](https://github.com/rancher/terraform-null-rke2-install/commit/4bb400bed07850ba934020e43290b87e30116a24))
+* update workflows and test framework ([#170](https://github.com/rancher/terraform-null-rke2-install/issues/170)) ([e536ef8](https://github.com/rancher/terraform-null-rke2-install/commit/e536ef8aca9784a95927865ed4a32b546a940348))
+* updating documentation ([#172](https://github.com/rancher/terraform-null-rke2-install/issues/172)) ([35a0600](https://github.com/rancher/terraform-null-rke2-install/commit/35a06007abe04a896ae8df2279bc3e3bdd8f6208))
+
 ## [1.3.0](https://github.com/rancher/terraform-null-rke2-install/compare/v1.2.3...v1.3.0) (2024-08-28)
 
 
