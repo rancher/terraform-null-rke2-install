@@ -6,9 +6,10 @@ on:
     - main
 
 env:
-  AWS_REGION: us-west-1
+  AWS_REGION: us-west-2
   AWS_ROLE: arn:aws:iam::270074865685:role/terraform-module-ci-test
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  ACME_SERVER_URL: https://acme-v02.api.letsencrypt.org/directory
 
 permissions: write-all
 
@@ -16,70 +17,102 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action@v4
         id: release-please
         with:
           release-type: terraform-module
-      - uses: peter-evans/create-or-update-comment@v4
-        name: 'Remind to wait'
+      - name: Install Let's Encrypt Roots and Intermediate Certificates
+        if: steps.release-please.outputs.pr
+        run: |
+          # https://letsencrypt.org/certificates/
+          sudo apt-get update -y
+          sudo apt-get install -y ca-certificates wget openssl libssl-dev
+          wget https://letsencrypt.org/certs/isrgrootx1.pem # rsa
+          sudo cp isrgrootx1.pem /usr/local/share/ca-certificates/
+          wget https://letsencrypt.org/certs/isrg-root-x2.pem # ecdsa
+          sudo cp isrg-root-x2.pem /usr/local/share/ca-certificates/
+          wget https://letsencrypt.org/certs/2024/r11.pem
+          sudo cp r11.pem /usr/local/share/ca-certificates/
+          wget https://letsencrypt.org/certs/2024/r10.pem
+          sudo cp r10.pem /usr/local/share/ca-certificates/
+          wget https://letsencrypt.org/certs/2024/e5.pem
+          sudo cp e5.pem /usr/local/share/ca-certificates/
+          wget https://letsencrypt.org/certs/2024/e6.pem
+          sudo cp e6.pem /usr/local/share/ca-certificates/
+          sudo update-ca-certificates
+      - name: Verify Lets Encrypt CA Functionality
+        if: steps.release-please.outputs.pr
+        run: |
+          # Function to check if Let's Encrypt CA is effectively used by openssl
+          check_letsencrypt_ca() {
+            # Try to verify a known Let's Encrypt certificate (you can use any valid one)
+            if openssl s_client -showcerts -connect letsencrypt.org:443 < /dev/null | openssl x509 -noout -issuer | grep -q "Let's Encrypt"; then
+              return 0 # Success
+            else
+              return 1 # Failure
+            fi
+          }
+          if check_letsencrypt_ca; then
+            echo "Let's Encrypt CA is functioning correctly."
+          else
+            echo "Error: Let's Encrypt CA is not being used for verification."
+            exit 1
+          fi
+      - uses: actions/github-script@v7
         if: steps.release-please.outputs.pr
         with:
-          issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
-          body: |
-            Please make sure e2e tests pass before merging this PR!
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: ${{ fromJson(steps.release-please.outputs.pr).number }},
+              owner: "${{ github.repository_owner }}",
+              repo: "${{ github.event.repository.name }}",
+              body: "Please make sure e2e tests pass before merging this PR! \n ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            })
       - uses: actions/checkout@v4
         if: steps.release-please.outputs.pr
         with:
           token: ${{secrets.GITHUB_TOKEN}}
           fetch-depth: 0
-      - uses: aws-actions/configure-aws-credentials@v4
+      - id: aws-creds
+        uses: aws-actions/configure-aws-credentials@v4
         if: steps.release-please.outputs.pr
         with:
           role-to-assume: ${{env.AWS_ROLE}}
-          role-session-name: ${{github.job}}-${{github.run_id}}-${{github.run_number}}-${{github.run_attempt}}
+          role-session-name: ${{github.run_id}}
           aws-region: ${{env.AWS_REGION}}
-      - uses: matttrach/nix-installer-action@main
+          role-duration-seconds: 7200 # 2 hours
+          output-credentials: true
+      - name: install-nix
         if: steps.release-please.outputs.pr
-      - name: Check for Leftovers
-        if: steps.release-please.outputs.pr
-        shell: 'nix develop --ignore-environment --extra-experimental-features nix-command --extra-experimental-features flakes --keep HOME --keep SSH_AUTH_SOCK --keep GITHUB_TOKEN --keep ZONE --keep AWS_ROLE --keep AWS_REGION --keep AWS_DEFAULT_REGION --keep AWS_ACCESS_KEY_ID --keep AWS_SECRET_ACCESS_KEY --keep AWS_SESSION_TOKEN --keep UPDATECLI_GPGTOKEN --keep UPDATECLI_GITHUB_TOKEN --keep UPDATECLI_GITHUB_ACTOR --keep GPG_SIGNING_KEY --keep NIX_ENV_LOADED --keep TERM --command bash -e {0}'
         run: |
-          for region in us-west-1 us-west-2 us-east-1 us-east-2; do
-            echo -n "leftovers in $region: "
-            response="$( \
-              leftovers -d --iaas=aws --aws-region="$region" --filter="Owner:terraform-ci" | \
-                grep -v 'AccessDenied' | \
-                grep -v 'status code' | \
-                grep -v 'UnauthorizedOperation' \
-              || true
-            )"
-            if [ -n "$response" ]; then
-              echo "found leftovers: "
-              echo "$response"
-              echo "please clean up leftovers before release testing"
-              exit 1
-            else
-              echo "none found"
-            fi
-          done
+          curl -L https://nixos.org/nix/install | sh
+          source /home/runner/.nix-profile/etc/profile.d/nix.sh
+          nix --version
+          which nix
       - name: Run Tests
         if: steps.release-please.outputs.pr
-        shell: 'nix develop --ignore-environment --extra-experimental-features nix-command --extra-experimental-features flakes --keep HOME --keep SSH_AUTH_SOCK --keep GITHUB_TOKEN --keep GITHUB_OWNER --keep ZONE --keep AWS_ROLE --keep AWS_REGION --keep AWS_DEFAULT_REGION --keep AWS_ACCESS_KEY_ID --keep AWS_SECRET_ACCESS_KEY --keep AWS_SESSION_TOKEN --keep UPDATECLI_GPGTOKEN --keep UPDATECLI_GITHUB_TOKEN --keep UPDATECLI_GITHUB_ACTOR --keep GPG_SIGNING_KEY --keep NIX_ENV_LOADED --keep TERM --command bash -e {0}'
+        shell: '/home/runner/.nix-profile/bin/nix develop --ignore-environment --extra-experimental-features nix-command --extra-experimental-features flakes --keep HOME --keep SSH_AUTH_SOCK --keep IDENTIFIER --keep GITHUB_TOKEN --keep GITHUB_OWNER --keep ZONE --keep AWS_ROLE --keep AWS_REGION --keep AWS_DEFAULT_REGION --keep AWS_ACCESS_KEY_ID --keep AWS_SECRET_ACCESS_KEY --keep AWS_SESSION_TOKEN --keep UPDATECLI_GPGTOKEN --keep UPDATECLI_GITHUB_TOKEN --keep UPDATECLI_GITHUB_ACTOR --keep GPG_SIGNING_KEY --keep NIX_SSL_CERT_FILE --keep NIX_ENV_LOADED --keep TERM --command bash -e {0}'
         env:
+          AWS_ACCESS_KEY_ID: ${{ steps.aws-creds.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws-creds.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws-creds.outputs.aws-session-token }}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           GITHUB_OWNER: rancher
           IDENTIFIER: ${{github.run_id}}
           ZONE: ${{secrets.ZONE}}
+          ACME_SERVER_URL: https://acme-v02.api.letsencrypt.org/directory
+          RANCHER_INSECURE: false
         run: |
-          chmod +x ${{github.workspace}}/run_tests.sh
-          ${{github.workspace}}/run_tests.sh
-          cd ${{github.workspace}}
-      - uses: peter-evans/create-or-update-comment@v4
-        name: 'Report Success'
+          ./run_tests.sh
+      - uses: actions/github-script@v7
         if: steps.release-please.outputs.pr
         with:
-          issue-number: ${{ fromJson(steps.release-please.outputs.pr).number }}
-          body: |
-            End to End Tests Passed!
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: ${{ fromJson(steps.release-please.outputs.pr).number }},
+              owner: "${{ github.repository_owner }}",
+              repo: "${{ github.event.repository.name }}",
+              body: "End to End Tests Passed! \n ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            })

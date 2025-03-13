@@ -10,3 +10,6 @@ variable "key_name" {
 variable "rke2_version" {
   type = string
 }
+variable "zone" {
+  type = string
+}

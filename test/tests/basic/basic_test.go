@@ -1,4 +1,4 @@
-package test
+package basic
 
 import (
 	"fmt"
@@ -10,26 +10,31 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 
 	"github.com/stretchr/testify/assert"
+  util "github.com/rancher/terraform-null-rke2-install/test/tests"
 )
 
-func TestManifest(t *testing.T) {
+func TestBasic(t *testing.T) {
 	t.Parallel()
 	id := os.Getenv("IDENTIFIER")
 	if id == "" {
 		id = random.UniqueId()
 	}
-	directory := "manifest"
-	region := "us-west-1"
+	directory := "basic"
+  id = id + "-" + directory
+  region := os.Getenv("AWS_REGION")
+  if region == "" {
+    region = "us-west-2"
+  }
 	owner := "terraform-ci@suse.com"
 	terraformVars := map[string]interface{}{}
-	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
+	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, terraformVars)
 	delete(terraformOptions.Vars, "key_name")
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
 	defer sshAgent.Stop()
 	terraformOptions.SshAgent = sshAgent
 
-	defer teardown(t, directory, keyPair)
+	defer util.Teardown(t, directory, keyPair)
 	defer terraform.Destroy(t, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
 

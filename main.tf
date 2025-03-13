@@ -1,6 +1,5 @@
 locals {
   release = var.release
-  channel = var.rpm_channel
   role    = var.role
   ssh_ip  = var.ssh_ip
   # tflint-ignore: terraform_unused_declarations
@@ -14,6 +13,7 @@ locals {
   remote_path                = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
   retrieve_kubeconfig        = var.retrieve_kubeconfig
   install_method             = var.install_method
+  channel                    = (local.install_method == "rpm" ? (var.rpm_channel != "" ? var.rpm_channel : "stable") : "")
   server_prep_script         = var.server_prep_script
   server_install_prep_script = var.server_install_prep_script
   start                      = var.start
@@ -172,7 +172,11 @@ resource "null_resource" "install" {
     inline = [<<-EOT
       set -x
       set -e
-      echo "Uptime is "$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}') min", it should be low."
+      uptime
+      seconds_up="$(cat /proc/uptime | awk '{print $1}' | awk -F. '{print $1}')"
+      minutes_up="$(sudo uptime | awk '{print $3}' | awk -F: '{print $2}' | awk -F, '{print $1}')"
+      echo "Uptime is $seconds_up seconds, it should be low."
+      echo "Uptime is $minutes_up minutes, it should be low."
       sudo chmod +x "${local.remote_workspace}/install.sh"
       sudo ${local.remote_workspace}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}" "${local.channel}"
     EOT

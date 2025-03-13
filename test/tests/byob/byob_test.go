@@ -1,4 +1,4 @@
-package test
+package byob
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/go-getter"
 	"github.com/stretchr/testify/require"
+  util "github.com/rancher/terraform-null-rke2-install/test/tests"
 )
 
 func TestByobConfigChange(t *testing.T) {
@@ -19,23 +20,29 @@ func TestByobConfigChange(t *testing.T) {
 		id = random.UniqueId()
 	}
 	directory := "byob"
-	region := "us-west-1"
+  id = id + "-" + directory
+  region := os.Getenv("AWS_REGION")
+  if region == "" {
+    region = "us-west-2"
+  }
 	owner := "terraform-ci@suse.com"
-	download_path := fmt.Sprintf("../examples/%s/rke2", directory)
+  repoRoot, err := util.GetRepoRoot(t)
+  require.NoError(t, err)
+	download_path := fmt.Sprintf("%s/examples/%s/rke2", repoRoot, directory)
 	err1 := os.Mkdir(download_path, 0755)
 	require.NoError(t, err1)
 
-	release := getLatestRelease(t, "rancher", "rke2")
+	release := util.GetLatestRelease(t, "rancher", "rke2")
 	terraformVars := map[string]interface{}{
 		"rke2_version": release,
 	}
-	terraformOptions, keyPair := setup(t, directory, region, owner, id, terraformVars)
+	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, terraformVars)
 
 	sshAgent := ssh.SshAgentWithKeyPair(t, keyPair.KeyPair)
 	defer sshAgent.Stop()
 	terraformOptions.SshAgent = sshAgent
 	delete(terraformOptions.Vars, "key_name")
-	defer teardown(t, directory, keyPair)
+	defer util.Teardown(t, directory, keyPair)
 
 	url := fmt.Sprintf("https://github.com/rancher/rke2/releases/download/%s", release)
 
