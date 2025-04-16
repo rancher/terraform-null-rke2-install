@@ -178,6 +178,7 @@ resource "null_resource" "install" {
       echo "Uptime is $seconds_up seconds, it should be low."
       echo "Uptime is $minutes_up minutes, it should be low."
       sudo chmod +x "${local.remote_workspace}/install.sh"
+      export DEBUG=1
       sudo ${local.remote_workspace}/install.sh "${local.role}" "${local.remote_path}" "${local.release}" "${local.install_method}" "${local.channel}"
     EOT
     ]
