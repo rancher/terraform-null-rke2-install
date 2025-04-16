@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.1...v1.3.2) (2025-04-16)
+
+
+### Bug Fixes
+
+* set debug mode on install ([#175](https://github.com/rancher/terraform-null-rke2-install/issues/175)) ([5bafb6a](https://github.com/rancher/terraform-null-rke2-install/commit/5bafb6a905209d3bc2ed8c74c9fcb1ee5f73ff60))
+
 ## [1.3.1](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.0...v1.3.1) (2025-03-13)
 
 
