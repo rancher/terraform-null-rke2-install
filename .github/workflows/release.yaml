@@ -10,6 +10,8 @@ env:
   AWS_ROLE: arn:aws:iam::270074865685:role/terraform-module-ci-test
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
   ACME_SERVER_URL: https://acme-v02.api.letsencrypt.org/directory
+  NIX_INSTALL_SHA: de490f61fcbaf9a5cabf2fa621ddb9ef93ad35d9a23a04e7d51b26e092b63691
+  NIX_INSTALL_VERSION: 2.34.4
 
 permissions: write-all
 
@@ -17,48 +19,13 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4
+      # https://github.com/googleapis/release-please-action
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
         id: release-please
         with:
           release-type: terraform-module
-      - name: Install Let's Encrypt Roots and Intermediate Certificates
-        if: steps.release-please.outputs.pr
-        run: |
-          # https://letsencrypt.org/certificates/
-          sudo apt-get update -y
-          sudo apt-get install -y ca-certificates wget openssl libssl-dev
-          wget https://letsencrypt.org/certs/isrgrootx1.pem # rsa
-          sudo cp isrgrootx1.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/isrg-root-x2.pem # ecdsa
-          sudo cp isrg-root-x2.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/r11.pem
-          sudo cp r11.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/r10.pem
-          sudo cp r10.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/e5.pem
-          sudo cp e5.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/e6.pem
-          sudo cp e6.pem /usr/local/share/ca-certificates/
-          sudo update-ca-certificates
-      - name: Verify Lets Encrypt CA Functionality
-        if: steps.release-please.outputs.pr
-        run: |
-          # Function to check if Let's Encrypt CA is effectively used by openssl
-          check_letsencrypt_ca() {
-            # Try to verify a known Let's Encrypt certificate (you can use any valid one)
-            if openssl s_client -showcerts -connect letsencrypt.org:443 < /dev/null | openssl x509 -noout -issuer | grep -q "Let's Encrypt"; then
-              return 0 # Success
-            else
-              return 1 # Failure
-            fi
-          }
-          if check_letsencrypt_ca; then
-            echo "Let's Encrypt CA is functioning correctly."
-          else
-            echo "Error: Let's Encrypt CA is not being used for verification."
-            exit 1
-          fi
-      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+      # https://github.com/actions/github-script
+      - uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         if: steps.release-please.outputs.pr
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
@@ -69,13 +36,15 @@ jobs:
               repo: "${{ github.event.repository.name }}",
               body: "Please make sure e2e tests pass before merging this PR! \n ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             })
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         if: steps.release-please.outputs.pr
         with:
           token: ${{secrets.GITHUB_TOKEN}}
           fetch-depth: 0
       - id: aws-creds
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+      # https://github.com/aws-actions/configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         if: steps.release-please.outputs.pr
         with:
           role-to-assume: ${{env.AWS_ROLE}}
@@ -86,7 +55,10 @@ jobs:
       - name: install-nix
         if: steps.release-please.outputs.pr
         run: |
-          curl -L https://nixos.org/nix/install | sh
+          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
+          chmod +x install.sh
+          ./install.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -105,7 +77,8 @@ jobs:
           RANCHER_INSECURE: false
         run: |
           ./run_tests.sh
-      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+      # https://github.com/actions/github-script
+      - uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         if: steps.release-please.outputs.pr
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}

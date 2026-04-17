@@ -7,16 +7,21 @@ provider "aws" {
   }
 }
 
+# This example demonstrates upgrading RKE2 to a new version.
+# The module automatically handles upgrades when the rke2_version changes.
+# To upgrade: change the rke2_version variable and run terraform apply.
+# The module will stop the service, install the new version, reboot, and start the service.
 locals {
   identifier      = var.identifier # this is a random unique string that can be used to identify resources in the cloud provider
   email           = "terraform-ci@suse.com"
-  example         = "basic"
+  example         = "upgrade"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
   username        = substr(lower("tf-${local.identifier}"), 0, 32)
-  image           = "sle-micro-60"
+  image           = "sles-15"
   ip              = chomp(data.http.myip.response_body)
   ssh_key         = var.key
-  rke2_version    = "stable"
+  key_name        = var.key_name
+  rke2_version    = var.rke2_version # pinned version for controlled upgrades
   local_file_path = "${path.root}/data/${local.identifier}"
 }
 
@@ -40,9 +45,8 @@ module "access" {
   source                     = "rancher/access/aws"
   version                    = "v4.0.2"
   vpc_name                   = "${local.project_name}-vpc"
-  vpc_public                 = true
   security_group_name        = "${local.project_name}-sg"
-  security_group_type        = "project"
+  security_group_type        = "egress" # when installing with rpms you need egress access
   load_balancer_use_strategy = "skip"
 }
 
@@ -57,11 +61,18 @@ module "server" {
   server_type                = "small"
   subnet_name                = keys(module.access.subnets)[0]
   security_group_name        = module.access.security_group.tags_all.Name
-  direct_access_use_strategy = "ssh"     # either the subnet needs to be public or you must add an eip
-  cloudinit_use_strategy     = "default" # use the default cloudinit config
-  server_access_addresses = {            # you must include ssh access here to enable setup
-    "runner" = {
+  direct_access_use_strategy = "ssh"  # either the subnet needs to be public or you must add an eip
+  cloudinit_use_strategy     = "skip" # sles doesn't have cloudinit by default
+  add_eip                    = true   # adding an eip to allow setup
+  server_access_addresses = {         # you must include ssh access here to enable setup
+    "runnerSsh" = {
       port      = 22
+      protocol  = "tcp"
+      cidrs     = ["${local.ip}/32"]
+      ip_family = "ipv4"
+    }
+    "runnerKube" = {
+      port      = 6443
       protocol  = "tcp"
       cidrs     = ["${local.ip}/32"]
       ip_family = "ipv4"
@@ -69,51 +80,45 @@ module "server" {
   }
   server_user = {
     user                     = local.username
-    aws_keypair_use_strategy = "skip"        # we will use cloud-init to add a keypair directly
-    ssh_key_name             = ""            # not creating or selecting a key, but this field is still required
+    aws_keypair_use_strategy = "select"
+    ssh_key_name             = local.key_name
     public_ssh_key           = local.ssh_key # ssh key to add via cloud-init
     user_workfolder          = "/home/${local.username}"
     timeout                  = 5
   }
 }
 
-module "download" {
-  source  = "rancher/rke2-download/github"
-  version = "v1.0.1"
-  path    = local.local_file_path
-}
-
 module "config" {
-  depends_on = [
-    module.access,
-    module.server,
-    module.download,
-  ]
   source          = "rancher/rke2-config/local"
   version         = "v1.0.1"
   local_file_path = local.local_file_path
 }
+
 
 # everything before this module is not necessary, you can generate the resources manually or use other methods
 module "this" {
   depends_on = [
     module.access,
     module.server,
-    module.download,
     module.config,
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   # version = "v0.2.7" # when using this example you will need to set the version
-  ssh_ip              = module.server.server.public_ip
-  ssh_user            = local.username
-  release             = local.rke2_version
-  local_file_path     = local.local_file_path
-  retrieve_kubeconfig = true
-  remote_workspace    = module.server.image.workfolder
+  ssh_ip                     = module.server.server.public_ip
+  ssh_user                   = local.username
+  release                    = local.rke2_version
+  local_file_path            = local.local_file_path
+  retrieve_kubeconfig        = true
+  remote_workspace           = module.server.image.workfolder
+  install_method             = "rpm"
+  server_install_prep_script = file("${path.root}/install_prep.sh")
+  # The identifier includes rke2_version, so changing the version will trigger a reinstall
+  # This is how upgrades work: change rke2_version -> identifier changes -> module reinstalls RKE2
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.server.server.id,
     local.rke2_version,
     module.config.yaml_config,
+    module.server.image.workfolder,
   ]))
 }

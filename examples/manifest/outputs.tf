@@ -5,7 +5,8 @@ output "image" {
   value = module.server.image
 }
 output "access" {
-  value = module.access
+  value     = module.access
+  sensitive = true
 }
 output "kubeconfig" {
   value       = module.this.kubeconfig

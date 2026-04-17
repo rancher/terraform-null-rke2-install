@@ -8,18 +8,24 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   GITHUB_OWNER: ${{ github.repository_owner }}
+  NIX_INSTALL_SHA: de490f61fcbaf9a5cabf2fa621ddb9ef93ad35d9a23a04e7d51b26e092b63691
+  NIX_INSTALL_VERSION: 2.34.4
 
 jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L https://nixos.org/nix/install | sh
+          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
+          chmod +x install.sh
+          ./install.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -33,12 +39,16 @@ jobs:
     name: 'Lint Workflows'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L https://nixos.org/nix/install | sh
+          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
+          chmod +x install.sh
+          ./install.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -49,12 +59,16 @@ jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L https://nixos.org/nix/install | sh
+          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
+          chmod +x install.sh
+          ./install.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -69,12 +83,16 @@ jobs:
   validate-commit-message:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # fetch all history so that we can validate the commit messages
       - name: install-nix
         run: |
-          curl -L https://nixos.org/nix/install | sh
+          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
+          chmod +x install.sh
+          ./install.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -87,17 +105,18 @@ jobs:
           # This format enables automatic generation of changelogs and versioning
           filter() {
             COMMIT="$1"
-            ouput="$(echo "$COMMIT" | grep -e '^fix: ' -e '^feature: ' -e '^feat: ' -e 'refactor!: ' -e 'feature!: ' -e 'feat!: ' -e '^chore(main): ')"
+            output="$(echo "$COMMIT" | grep -v -e '^fix: ' -e '^feature: ' -e '^feat: ' -e '^refactor!: ' -e '^feature!: ' -e '^feat!: ' -e '^chore(main): ' -e '^Merge branch ')"
             echo "$output"
           }
           prefix_check() {
             message="$1"
             if [ "" != "$(filter "$message")" ]; then
-              echo "...Commit message does not start with the required prefix.
-              Please use one of the following prefixes: fix:, feature:, feat:, refactor!:, feature!:, feat:!.
-              'chore(main): ' is also allowed for release PRs.
-              This enables release-please to automatically determine the type of release (major, minor, patch) based on the commit message.
-              $message"
+              cat <<EOF
+          ...Commit message does not start with the required prefix.
+          Please use one of the following prefixes: "fix:", "feature:", "feat:", "refactor!:", "feature!:", or "feat!:".
+          This enables release-please to automatically format release notes based on the commit message.
+          $message
+          EOF
               exit 1
             else
               echo "...Commit message starts with the required prefix."
@@ -114,19 +133,21 @@ jobs:
           }
           length_check() {
             message="$1"
-            if [ "$(wc -m <<<"$message")" -gt 50 ]; then
-              echo "...Commit message subject line should be less than 50 characters, found $(wc -m "$message")."
+            length="$(wc -m <<<"$message")"
+            if [ $length -gt 100 ]; then
+              echo "...Commit message subject line should be less than 100 characters, found $length."
               exit 1
             else
-              echo "...Commit message subject line is less than 50 characters."
+              echo "...Commit message subject line is less than 100 characters."
             fi
           }
           spell_check() {
             message="$1"
-            WORDS="$(aspell list <<<"$message")"
+            WORDS="$(aspell list --dont-validate-words <<<"$message")"
             if [ "" != "$WORDS" ]; then
               echo "...Commit message contains spelling errors on: ^$WORDS\$"
               echo "...Also try updating the PR title."
+              echo "...If this is a mistake, add your word to the aspell_custom.txt file, it is case insensitive."
               exit 1
             else
               echo "...Commit message doesnt contain spelling errors."
@@ -141,8 +162,8 @@ jobs:
 
           while read -r message; do
             echo "checking message ^$message\$"
-            prefix_check "$message"
             empty_check "$message"
+            prefix_check "$message"
             length_check "$message"
             spell_check "$message"
             echo "message ^$message\$ passed all checks"
@@ -152,12 +173,16 @@ jobs:
     name: 'Scan for Secrets'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L https://nixos.org/nix/install | sh
+          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
+          chmod +x install.sh
+          ./install.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix

@@ -7,6 +7,7 @@ require (
 	github.com/google/go-github/v53 v53.2.0
 	github.com/gruntwork-io/terratest v0.43.6
 	github.com/hashicorp/go-getter v1.7.1
+	github.com/hashicorp/go-version v1.6.0
 	github.com/stretchr/testify v1.8.1
 )
 
@@ -38,7 +39,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
-	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.9.1 // indirect
 	github.com/hashicorp/terraform-json v0.13.0 // indirect
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a // indirect

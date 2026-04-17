@@ -33,7 +33,7 @@ data "http" "myip" {
 
 module "access" {
   source                     = "rancher/access/aws"
-  version                    = "v3.1.12"
+  version                    = "v4.0.2"
   vpc_name                   = "${local.project_name}-vpc"
   vpc_public                 = false
   security_group_name        = "${local.project_name}-sg"
@@ -48,7 +48,7 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v1.4.0"
+  version                    = "v2.0.0"
   image_type                 = local.image
   server_name                = local.project_name
   server_type                = "medium"
@@ -88,7 +88,7 @@ module "config" {
     module.server,
   ]
   source  = "rancher/rke2-config/local"
-  version = "v1.0.0"
+  version = "v1.0.1"
   tls-san = distinct(compact([
     lower("${local.project_name}.${local.zone}"),
   ]))

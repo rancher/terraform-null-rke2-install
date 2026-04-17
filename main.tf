@@ -22,7 +22,9 @@ locals {
 
 # if local path specified copy all files and folders to the remote_path directory
 resource "terraform_data" "copy_to_remote" {
-  triggers_replace = local.identifier
+  triggers_replace = {
+    id = local.identifier
+  }
   connection {
     type        = "ssh"
     user        = local.ssh_user
@@ -49,11 +51,11 @@ resource "terraform_data" "copy_to_remote" {
     ]
   }
 }
-resource "null_resource" "configure" {
+resource "terraform_data" "configure" {
   depends_on = [
     terraform_data.copy_to_remote,
   ]
-  triggers = {
+  triggers_replace = {
     id = local.identifier,
   }
   connection {
@@ -87,13 +89,13 @@ resource "null_resource" "configure" {
 # optionally run a script on the server before starting rke2
 # this can be used to mitigate OS specific issues or configuration
 # skipped when using the tarball install method because it should be self contained
-resource "null_resource" "install_prep" {
+resource "terraform_data" "install_prep" {
   count = (local.server_install_prep_script == "" ? 0 : 1)
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
+    terraform_data.configure,
   ]
-  triggers = {
+  triggers_replace = {
     id     = local.identifier,
     script = md5(local.server_install_prep_script),
   }
@@ -135,20 +137,20 @@ resource "null_resource" "install_prep" {
 resource "time_sleep" "ten_s_before_install" {
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
   ]
   create_duration = "10s"
 }
 # run the install script, which may upgrade rke2 if it is already installed
-resource "null_resource" "install" {
+resource "terraform_data" "install" {
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
   ]
-  triggers = {
+  triggers_replace = {
     id = local.identifier,
   }
   connection {
@@ -194,10 +196,10 @@ resource "null_resource" "install" {
 resource "time_sleep" "ten_s_after_install" {
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
-    null_resource.install,
+    terraform_data.install,
   ]
   create_duration = "10s"
 }
@@ -207,13 +209,15 @@ resource "terraform_data" "copy_manifests" {
   count = (local.local_manifests_path == "" ? 0 : 1)
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
-    null_resource.install,
+    terraform_data.install,
     time_sleep.ten_s_after_install,
   ]
-  triggers_replace = local.identifier
+  triggers_replace = {
+    id = local.identifier
+  }
   connection {
     type        = "ssh"
     user        = local.ssh_user
@@ -238,7 +242,7 @@ resource "terraform_data" "copy_manifests" {
       ls -lah ${local.remote_path}/manifests
       sudo install -d /var/lib/rancher/rke2/server/manifests
       sudo cp ${local.remote_path}/manifests/* /var/lib/rancher/rke2/server/manifests
-      ls -lah /var/lib/rancher/rke2/server/manifests
+      sudo ls -lah /var/lib/rancher/rke2/server/manifests
     EOT
     ]
   }
@@ -246,18 +250,18 @@ resource "terraform_data" "copy_manifests" {
 
 # optionally run a script on the server before starting rke2
 # this can be used to mitigate OS specific issues or configuration
-resource "null_resource" "prep" {
+resource "terraform_data" "prep" {
   count = (local.server_prep_script == "" ? 0 : 1)
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
-    null_resource.install,
+    terraform_data.install,
     time_sleep.ten_s_after_install,
     terraform_data.copy_manifests,
   ]
-  triggers = {
+  triggers_replace = {
     id     = local.identifier,
     script = local.server_prep_script,
   }
@@ -299,31 +303,31 @@ resource "null_resource" "prep" {
 resource "time_sleep" "ten_s_before_start" {
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
-    null_resource.install,
+    terraform_data.install,
     time_sleep.ten_s_after_install,
     terraform_data.copy_manifests,
-    null_resource.prep,
+    terraform_data.prep,
   ]
   create_duration = "10s"
 }
 # start or restart rke2 service
-resource "null_resource" "start" {
+resource "terraform_data" "start" {
   count = (local.start == true ? 1 : 0)
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
-    null_resource.install,
+    terraform_data.install,
     time_sleep.ten_s_after_install,
     terraform_data.copy_manifests,
-    null_resource.prep,
+    terraform_data.prep,
     time_sleep.ten_s_before_start,
   ]
-  triggers = {
+  triggers_replace = {
     id = local.identifier,
   }
   connection {
@@ -354,21 +358,21 @@ resource "null_resource" "start" {
     ]
   }
 }
-resource "null_resource" "get_kubeconfig" {
+resource "terraform_data" "get_kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
-    null_resource.install,
+    terraform_data.install,
     time_sleep.ten_s_after_install,
     terraform_data.copy_manifests,
-    null_resource.prep,
+    terraform_data.prep,
     time_sleep.ten_s_before_start,
-    null_resource.start,
+    terraform_data.start,
   ]
-  triggers = {
+  triggers_replace = {
     id = local.identifier,
   }
   connection {
@@ -411,16 +415,16 @@ data "local_sensitive_file" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
     terraform_data.copy_to_remote,
-    null_resource.configure,
-    null_resource.install_prep,
+    terraform_data.configure,
+    terraform_data.install_prep,
     time_sleep.ten_s_before_install,
-    null_resource.install,
+    terraform_data.install,
     time_sleep.ten_s_after_install,
     terraform_data.copy_manifests,
-    null_resource.prep,
+    terraform_data.prep,
     time_sleep.ten_s_before_start,
-    null_resource.start,
-    null_resource.get_kubeconfig,
+    terraform_data.start,
+    terraform_data.get_kubeconfig,
   ]
   filename = "${local.local_path}/kubeconfig"
 }
