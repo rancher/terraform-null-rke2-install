@@ -39,8 +39,7 @@ func TestCandidate(t *testing.T) {
 	output, err := terraform.InitAndApplyE(t, terraformOptions)
 	t.Log(output)
 	if err != nil {
-		t.Log(err)
-		// don't fail if candidate testing fails
-		return
+		// Mark test as failed but allow cleanup to run
+		t.Errorf("Candidate test failed (this may be expected if the release candidate has issues): %v", err)
 	}
 }

@@ -48,7 +48,7 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v2.0.0"
+  version                    = "v2.0.1"
   image_type                 = local.image
   server_name                = local.project_name
   server_type                = "medium"

@@ -35,9 +35,7 @@ func TestLatest(t *testing.T) {
 	output, err := terraform.InitAndApplyE(t, terraformOptions)
 	t.Log(output)
 	if err != nil {
-		t.Log(err)
-		// don't fail if latest fails
-		// generally this fails when a release is newly out because rpms have not had time to propagate
-		return
+		// Mark test as failed but allow cleanup to run
+		t.Errorf("Latest test failed (this may be expected if a new release just came out and RPMs haven't propagated yet): %v", err)
 	}
 }

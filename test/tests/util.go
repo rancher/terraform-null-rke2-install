@@ -11,8 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	a "github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/google/go-github/v53/github"
 	aws "github.com/gruntwork-io/terratest/modules/aws"
 	g "github.com/gruntwork-io/terratest/modules/git"
@@ -63,9 +62,9 @@ func Setup(t *testing.T, directory string, region string, owner string, id strin
 	require.NoError(t, err1)
 
 	input := &ec2.DescribeKeyPairsInput{
-		KeyNames: []*string{a.String(keyPairName)},
+		KeyNames: []string{keyPairName},
 	}
-	result, err2 := client.DescribeKeyPairs(input)
+	result, err2 := client.DescribeKeyPairs(context.Background(), input)
 	require.NoError(t, err2)
 
 	aws.AddTagsToResource(t, region, *result.KeyPairs[0].KeyPairId, map[string]string{"Name": keyPairName, "Owner": owner})
