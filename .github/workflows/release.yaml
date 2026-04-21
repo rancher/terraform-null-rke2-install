@@ -55,10 +55,10 @@ jobs:
       - name: install-nix
         if: steps.release-please.outputs.pr
         run: |
-          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
-          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
-          chmod +x install.sh
-          ./install.sh
+          curl -L -o install_nix.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install_nix.sh" | sha256sum -c -
+          chmod +x install_nix.sh
+          ./install_nix.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix

@@ -24,3 +24,4 @@ id_ed25519_*
 examples/*/data
 .claude
 .claude/**
+*.log
