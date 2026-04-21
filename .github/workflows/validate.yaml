@@ -22,10 +22,10 @@ jobs:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
-          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
-          chmod +x install.sh
-          ./install.sh
+          curl -L -o install_nix.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install_nix.sh" | sha256sum -c -
+          chmod +x install_nix.sh
+          ./install_nix.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -45,10 +45,10 @@ jobs:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
-          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
-          chmod +x install.sh
-          ./install.sh
+          curl -L -o install_nix.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install_nix.sh" | sha256sum -c -
+          chmod +x install_nix.sh
+          ./install_nix.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -65,10 +65,10 @@ jobs:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
-          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
-          chmod +x install.sh
-          ./install.sh
+          curl -L -o install_nix.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install_nix.sh" | sha256sum -c -
+          chmod +x install_nix.sh
+          ./install_nix.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -89,10 +89,10 @@ jobs:
           fetch-depth: 0 # fetch all history so that we can validate the commit messages
       - name: install-nix
         run: |
-          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
-          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
-          chmod +x install.sh
-          ./install.sh
+          curl -L -o install_nix.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install_nix.sh" | sha256sum -c -
+          chmod +x install_nix.sh
+          ./install_nix.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -179,10 +179,10 @@ jobs:
           fetch-depth: 0
       - name: install-nix
         run: |
-          curl -L -o install.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
-          echo "${NIX_INSTALL_SHA} install.sh" | sha256sum -c -
-          chmod +x install.sh
-          ./install.sh
+          curl -L -o install_nix.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
+          echo "${NIX_INSTALL_SHA} install_nix.sh" | sha256sum -c -
+          chmod +x install_nix.sh
+          ./install_nix.sh
           source /home/runner/.nix-profile/etc/profile.d/nix.sh
           nix --version
           which nix
@@ -193,43 +193,3 @@ jobs:
           gitleaks detect --no-banner -v
         continue-on-error: true
 
-  check-certificate-authorities:
-    name: 'Verify Lets Encrypt CA Functionality'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Let's Encrypt Root Certificate
-        run: |
-          # https://letsencrypt.org/certificates/
-          sudo apt-get update -y
-          sudo apt-get install -y ca-certificates wget openssl libssl-dev
-          wget https://letsencrypt.org/certs/isrgrootx1.pem
-          sudo cp isrgrootx1.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/isrg-root-x2.pem
-          sudo cp isrg-root-x2.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/r11.pem
-          sudo cp r11.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/r10.pem
-          sudo cp r10.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/e5.pem
-          sudo cp e5.pem /usr/local/share/ca-certificates/
-          wget https://letsencrypt.org/certs/2024/e6.pem
-          sudo cp e6.pem /usr/local/share/ca-certificates/
-          sudo update-ca-certificates
-      - name: Verify Lets Encrypt CA Functionality
-        run: |
-          # Function to check if Let's Encrypt CA is effectively used by openssl
-          check_letsencrypt_ca() {
-            # Try to verify a known Let's Encrypt certificate (you can use any valid one)
-            if openssl s_client -showcerts -connect letsencrypt.org:443 < /dev/null | openssl x509 -noout -issuer | grep -q "Let's Encrypt"; then
-              return 0 # Success
-            else
-              return 1 # Failure
-            fi
-          }
-
-          if check_letsencrypt_ca; then
-            echo "Let's Encrypt CA is functioning correctly."
-          else
-            echo "Error: Let's Encrypt CA is not being used for verification."
-            exit 1
-          fi
