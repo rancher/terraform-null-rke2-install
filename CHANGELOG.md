@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.3](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.2...v1.3.3) (2026-04-21)
+
+
+### Bug Fixes
+
+* Add FOSSA scanning workflow ([#177](https://github.com/rancher/terraform-null-rke2-install/issues/177)) ([4b37662](https://github.com/rancher/terraform-null-rke2-install/commit/4b37662e5d17a240a4d30242c2e7012ca940f7ab))
+* Pin GH Actions to commit sha ([#178](https://github.com/rancher/terraform-null-rke2-install/issues/178)) ([9ea9d0b](https://github.com/rancher/terraform-null-rke2-install/commit/9ea9d0b71ebb27e8c8ac57606c8d8834df601878))
+* resolve nix install breaking rke2 install ([#181](https://github.com/rancher/terraform-null-rke2-install/issues/181)) ([2500773](https://github.com/rancher/terraform-null-rke2-install/commit/2500773c74ba2b38cb55d8774562681af167b674))
+* upgrade modules and resolve security issues ([#180](https://github.com/rancher/terraform-null-rke2-install/issues/180)) ([c884521](https://github.com/rancher/terraform-null-rke2-install/commit/c8845212dae4408c97084a39c04066572314afcc))
+
 ## [1.3.2](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.1...v1.3.2) (2025-04-16)
 
 
