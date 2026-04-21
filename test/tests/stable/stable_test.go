@@ -7,7 +7,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
-  util "github.com/rancher/terraform-null-rke2-install/test/tests"
+	util "github.com/rancher/terraform-null-rke2-install/test/tests"
 )
 
 func TestStable(t *testing.T) {
@@ -17,11 +17,11 @@ func TestStable(t *testing.T) {
 		id = random.UniqueId()
 	}
 	directory := "stable"
-  id = id + "-" + directory
-  region := os.Getenv("AWS_REGION")
-  if region == "" {
-    region = "us-west-2"
-  }
+	id = id + "-" + directory
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		region = "us-west-2"
+	}
 	owner := "terraform-ci@suse.com"
 	terraformVars := map[string]interface{}{}
 	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, terraformVars)

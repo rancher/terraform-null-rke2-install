@@ -22,3 +22,5 @@ examples/**/51-*
 *.DS_*
 id_ed25519_*
 examples/*/data
+.claude
+.claude/**

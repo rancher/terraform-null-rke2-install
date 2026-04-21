@@ -9,8 +9,8 @@ import (
 	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/go-getter"
+	util "github.com/rancher/terraform-null-rke2-install/test/tests"
 	"github.com/stretchr/testify/require"
-  util "github.com/rancher/terraform-null-rke2-install/test/tests"
 )
 
 func TestByobConfigChange(t *testing.T) {
@@ -20,14 +20,14 @@ func TestByobConfigChange(t *testing.T) {
 		id = random.UniqueId()
 	}
 	directory := "byob"
-  id = id + "-" + directory
-  region := os.Getenv("AWS_REGION")
-  if region == "" {
-    region = "us-west-2"
-  }
+	id = id + "-" + directory
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		region = "us-west-2"
+	}
 	owner := "terraform-ci@suse.com"
-  repoRoot, err := util.GetRepoRoot(t)
-  require.NoError(t, err)
+	repoRoot, err := util.GetRepoRoot(t)
+	require.NoError(t, err)
 	download_path := fmt.Sprintf("%s/examples/%s/rke2", repoRoot, directory)
 	err1 := os.Mkdir(download_path, 0755)
 	require.NoError(t, err1)

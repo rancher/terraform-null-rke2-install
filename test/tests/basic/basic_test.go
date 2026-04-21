@@ -9,8 +9,8 @@ import (
 	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 
+	util "github.com/rancher/terraform-null-rke2-install/test/tests"
 	"github.com/stretchr/testify/assert"
-  util "github.com/rancher/terraform-null-rke2-install/test/tests"
 )
 
 func TestBasic(t *testing.T) {
@@ -20,11 +20,11 @@ func TestBasic(t *testing.T) {
 		id = random.UniqueId()
 	}
 	directory := "basic"
-  id = id + "-" + directory
-  region := os.Getenv("AWS_REGION")
-  if region == "" {
-    region = "us-west-2"
-  }
+	id = id + "-" + directory
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		region = "us-west-2"
+	}
 	owner := "terraform-ci@suse.com"
 	terraformVars := map[string]interface{}{}
 	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, terraformVars)

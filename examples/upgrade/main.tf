@@ -7,18 +7,21 @@ provider "aws" {
   }
 }
 
-# test install on rhel-8-cis without starting (prototype for immutable airgapped deploy)
+# This example demonstrates upgrading RKE2 to a new version.
+# The module automatically handles upgrades when the rke2_version changes.
+# To upgrade: change the rke2_version variable and run terraform apply.
+# The module will stop the service, install the new version, reboot, and start the service.
 locals {
   identifier      = var.identifier # this is a random unique string that can be used to identify resources in the cloud provider
   email           = "terraform-ci@suse.com"
-  example         = "nostart"
+  example         = "upgrade"
   project_name    = "tf-${substr(md5(join("-", [local.example, md5(local.identifier)])), 0, 5)}-${local.identifier}"
   username        = substr(lower("tf-${local.identifier}"), 0, 32)
-  image           = "cis-rhel-8"
+  image           = "sles-15"
   ip              = chomp(data.http.myip.response_body)
   ssh_key         = var.key
   key_name        = var.key_name
-  rke2_version    = var.rke2_version
+  rke2_version    = var.rke2_version # pinned version for controlled upgrades
   local_file_path = "${path.root}/data/${local.identifier}"
 }
 
@@ -43,7 +46,7 @@ module "access" {
   version                    = "v4.0.2"
   vpc_name                   = "${local.project_name}-vpc"
   security_group_name        = "${local.project_name}-sg"
-  security_group_type        = "egress" # when installing with RPMs you need egress access
+  security_group_type        = "egress" # when installing with rpms you need egress access
   load_balancer_use_strategy = "skip"
 }
 
@@ -59,7 +62,7 @@ module "server" {
   subnet_name                = keys(module.access.subnets)[0]
   security_group_name        = module.access.security_group.tags_all.Name
   direct_access_use_strategy = "ssh"  # either the subnet needs to be public or you must add an eip
-  cloudinit_use_strategy     = "skip" # sle-micro-55 doesn't have cloudinit
+  cloudinit_use_strategy     = "skip" # sles doesn't have cloudinit by default
   add_eip                    = true   # adding an eip to allow setup
   server_access_addresses = {         # you must include ssh access here to enable setup
     "runnerSsh" = {
@@ -80,7 +83,7 @@ module "server" {
     aws_keypair_use_strategy = "select"
     ssh_key_name             = local.key_name
     public_ssh_key           = local.ssh_key # ssh key to add via cloud-init
-    user_workfolder          = "/var/tmp"
+    user_workfolder          = "/home/${local.username}"
     timeout                  = 5
   }
 }
@@ -99,19 +102,23 @@ module "this" {
     module.server,
     module.config,
   ]
-  source              = "../../" # dev/test only source, for proper source see https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  ssh_ip              = module.server.server.public_ip
-  ssh_user            = local.username
-  release             = local.rke2_version
-  local_file_path     = local.local_file_path
-  retrieve_kubeconfig = false # kubeconfig is not generated until rke2 is started
-  install_method      = "rpm"
-  remote_workspace    = module.server.image.workfolder
-  start               = false
+  source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
+  # version = "v0.2.7" # when using this example you will need to set the version
+  ssh_ip                     = module.server.server.public_ip
+  ssh_user                   = local.username
+  release                    = local.rke2_version
+  local_file_path            = local.local_file_path
+  retrieve_kubeconfig        = true
+  remote_workspace           = module.server.image.workfolder
+  install_method             = "rpm"
+  server_install_prep_script = file("${path.root}/install_prep.sh")
+  # The identifier includes rke2_version, so changing the version will trigger a reinstall
+  # This is how upgrades work: change rke2_version -> identifier changes -> module reinstalls RKE2
   identifier = md5(join("-", [
     # if any of these things change, redeploy rke2
     module.server.server.id,
     local.rke2_version,
     module.config.yaml_config,
+    module.server.image.workfolder,
   ]))
 }

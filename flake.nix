@@ -48,40 +48,38 @@
             name = "dev-shell-package";
             paths = with pkgs; [
               actionlint
+              age
               aspellWithDicts
               awscli2
               bashInteractive
-              cmctl
               curl
               dig
+              eslint
               gh
               git
               gitleaks
               gnupg
               go
+              golangci-lint
+              goreleaser
               gotestfmt
               gotestsum
-              kubernetes-helm
               jq
-              kubectl
-              k8sgpt
               leftovers
               less
               openssh
               openssl
-              pup
               shellcheck
               tflint
               tfsec
               tfswitch
+              trivy
               updatecli
               vim
               which
-              xan
-              yq-go
+              yq
             ];
           };
-
         in
         {
           packages.default = devShellPackage;
@@ -89,6 +87,7 @@
           devShells.default = pkgs.mkShell {
             buildInputs = [ devShellPackage ];
             shellHook = ''
+              while read word; do echo -e "*$word\n#" | aspell -a --dont-validate-words >/dev/null; done < aspell_custom.txt
               homebin=$HOME/bin;
               install -d $homebin;
               tfswitch -b $homebin/terraform 1.5.7 &>/dev/null;

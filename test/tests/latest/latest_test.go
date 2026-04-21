@@ -7,7 +7,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
-  util "github.com/rancher/terraform-null-rke2-install/test/tests"
+	util "github.com/rancher/terraform-null-rke2-install/test/tests"
 )
 
 func TestLatest(t *testing.T) {
@@ -17,11 +17,11 @@ func TestLatest(t *testing.T) {
 		id = random.UniqueId()
 	}
 	directory := "latest"
-  id = id + "-" + directory
-  region := os.Getenv("AWS_REGION")
-  if region == "" {
-    region = "us-west-2"
-  }
+	id = id + "-" + directory
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		region = "us-west-2"
+	}
 	owner := "terraform-ci@suse.com"
 	terraformVars := map[string]interface{}{}
 	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, terraformVars)
@@ -35,9 +35,7 @@ func TestLatest(t *testing.T) {
 	output, err := terraform.InitAndApplyE(t, terraformOptions)
 	t.Log(output)
 	if err != nil {
-		t.Log(err)
-		// don't fail if latest fails
-		// generally this fails when a release is newly out because rpms have not had time to propagate
-		return
+		// Mark test as failed but allow cleanup to run
+		t.Errorf("Latest test failed (this may be expected if a new release just came out and RPMs haven't propagated yet): %v", err)
 	}
 }

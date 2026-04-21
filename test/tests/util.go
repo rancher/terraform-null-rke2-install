@@ -11,19 +11,18 @@ import (
 	"strings"
 	"testing"
 
-	a "github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/google/go-github/v53/github"
 	aws "github.com/gruntwork-io/terratest/modules/aws"
-  g "github.com/gruntwork-io/terratest/modules/git"
+	g "github.com/gruntwork-io/terratest/modules/git"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/go-version"
 	"github.com/stretchr/testify/require"
 )
 
 func Teardown(t *testing.T, directory string, keyPair *aws.Ec2Keypair) {
-  repoRoot, err0 := GetRepoRoot(t)
-  require.NoError(t, err0)
+	repoRoot, err0 := GetRepoRoot(t)
+	require.NoError(t, err0)
 	err := os.RemoveAll(fmt.Sprintf("%s/examples/%s/.terraform", repoRoot, directory))
 	require.NoError(t, err)
 	err2 := os.RemoveAll(fmt.Sprintf("%s/examples/%s/rke2", repoRoot, directory))
@@ -54,7 +53,7 @@ func rm(t *testing.T, path string) {
 func Setup(t *testing.T, directory string, region string, owner string, id string, terraformVars map[string]interface{}) (*terraform.Options, *aws.Ec2Keypair) {
 
 	// Create an EC2 KeyPair that we can use for SSH access
-  keyPairName := fmt.Sprintf("terraform-ci-%s", id)
+	keyPairName := fmt.Sprintf("terraform-ci-%s", id)
 	keyPair := aws.CreateAndImportEC2KeyPair(t, region, keyPairName)
 	//log.Print(keyPair.KeyPair.PrivateKey)
 
@@ -63,15 +62,15 @@ func Setup(t *testing.T, directory string, region string, owner string, id strin
 	require.NoError(t, err1)
 
 	input := &ec2.DescribeKeyPairsInput{
-		KeyNames: []*string{a.String(keyPairName)},
+		KeyNames: []string{keyPairName},
 	}
-	result, err2 := client.DescribeKeyPairs(input)
+	result, err2 := client.DescribeKeyPairs(context.Background(), input)
 	require.NoError(t, err2)
 
 	aws.AddTagsToResource(t, region, *result.KeyPairs[0].KeyPairId, map[string]string{"Name": keyPairName, "Owner": owner})
 
 	terraformVars["key_name"] = keyPairName
-	terraformVars["key"] = keyPair.KeyPair.PublicKey
+	terraformVars["key"] = keyPair.PublicKey
 	terraformVars["identifier"] = id
 
 	retryableTerraformErrors := map[string]string{
@@ -85,8 +84,8 @@ func Setup(t *testing.T, directory string, region string, owner string, id strin
 		".*i/o timeout.*":                            "Failed due to transient network error.",
 		".*curl.*exit status 7.*":                    "Failed due to transient network error.",
 	}
-  repoRoot, err0 := GetRepoRoot(t)
-  require.NoError(t, err0)
+	repoRoot, err0 := GetRepoRoot(t)
+	require.NoError(t, err0)
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: fmt.Sprintf("%s/examples/%s", repoRoot, directory),
 		// Variables to pass to our Terraform code using -var options
@@ -136,12 +135,11 @@ func GetLatestCandidateRelease(t *testing.T, owner string, repo string) string {
 	return releaseTags[1]
 }
 
-
 func GetRepoRoot(t *testing.T) (string, error) {
-  gwd := g.GetRepoRoot(t)
-  fwd, err := filepath.Abs(gwd)
-  if err != nil {
-    return "", err
-  }
-  return fwd, nil
+	gwd := g.GetRepoRoot(t)
+	fwd, err := filepath.Abs(gwd)
+	if err != nil {
+		return "", err
+	}
+	return fwd, nil
 }

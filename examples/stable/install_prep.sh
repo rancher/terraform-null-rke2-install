@@ -13,4 +13,4 @@ zypper --gpg-auto-import-keys --non-interactive ar -f https://download.opensuse.
 rpm --import https://rpm.rancher.io/public.key || true
 
 timeout 10m zypper --gpg-auto-import-keys --non-interactive refresh
-timeout 5m zypper --gpg-auto-import-keys --non-interactive install -n -y --force restorecond policycoreutils curl
+timeout 5m zypper --gpg-auto-import-keys --non-interactive install -y --force-resolution restorecond policycoreutils curl
