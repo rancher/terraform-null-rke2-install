@@ -6,86 +6,67 @@ on:
     - main
 
 env:
-  AWS_REGION: us-west-2
-  AWS_ROLE: arn:aws:iam::270074865685:role/terraform-module-ci-test
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-  ACME_SERVER_URL: https://acme-v02.api.letsencrypt.org/directory
-  NIX_INSTALL_SHA: de490f61fcbaf9a5cabf2fa621ddb9ef93ad35d9a23a04e7d51b26e092b63691
-  NIX_INSTALL_VERSION: 2.34.4
 
-permissions: write-all
+permissions: {}
 
 jobs:
   release:
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      # https://github.com/googleapis/release-please-action
-      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
+      - name: 'Release Please'
+        # https://github.com/googleapis/release-please-action/releases
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release-please
         with:
           release-type: terraform-module
-      # https://github.com/actions/github-script
-      - uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: 'Free Disk Space Before Test'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/free-disk-space.sh
+
+      - name: 'Comment PR e2e wait'
+        # https://github.com/actions/github-script/releases
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         if: steps.release-please.outputs.pr
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            github.rest.issues.createComment({
-              issue_number: ${{ fromJson(steps.release-please.outputs.pr).number }},
-              owner: "${{ github.repository_owner }}",
-              repo: "${{ github.event.repository.name }}",
-              body: "Please make sure e2e tests pass before merging this PR! \n ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            })
-      # https://github.com/actions/checkout
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: steps.release-please.outputs.pr
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          fetch-depth: 0
-      - id: aws-creds
-      # https://github.com/aws-actions/configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
-        if: steps.release-please.outputs.pr
-        with:
-          role-to-assume: ${{env.AWS_ROLE}}
-          role-session-name: ${{github.run_id}}
-          aws-region: ${{env.AWS_REGION}}
-          role-duration-seconds: 7200 # 2 hours
-          output-credentials: true
-      - name: install-nix
-        if: steps.release-please.outputs.pr
-        run: |
-          curl -L -o install_nix.sh "https://releases.nixos.org/nix/nix-${NIX_INSTALL_VERSION}/install"
-          echo "${NIX_INSTALL_SHA} install_nix.sh" | sha256sum -c -
-          chmod +x install_nix.sh
-          ./install_nix.sh
-          source /home/runner/.nix-profile/etc/profile.d/nix.sh
-          nix --version
-          which nix
+            const scriptPath = `${process.env.GITHUB_WORKSPACE}/.github/workflows/scripts/pr-e2e-wait.js`;
+            const { default: script } = await import(scriptPath);
+            context.payload.pull_request = { number: ${{ fromJson(steps.release-please.outputs.pr).number }} };
+            await script({ github, context });
+
       - name: Run Tests
         if: steps.release-please.outputs.pr
-        shell: '/home/runner/.nix-profile/bin/nix develop --ignore-environment --extra-experimental-features nix-command --extra-experimental-features flakes --keep HOME --keep SSH_AUTH_SOCK --keep IDENTIFIER --keep GITHUB_TOKEN --keep GITHUB_OWNER --keep ZONE --keep AWS_ROLE --keep AWS_REGION --keep AWS_DEFAULT_REGION --keep AWS_ACCESS_KEY_ID --keep AWS_SECRET_ACCESS_KEY --keep AWS_SESSION_TOKEN --keep UPDATECLI_GPGTOKEN --keep UPDATECLI_GITHUB_TOKEN --keep UPDATECLI_GITHUB_ACTOR --keep GPG_SIGNING_KEY --keep NIX_SSL_CERT_FILE --keep NIX_ENV_LOADED --keep TERM --command bash -e {0}'
+        shell: bash
         env:
-          AWS_ACCESS_KEY_ID: ${{ steps.aws-creds.outputs.aws-access-key-id }}
-          AWS_SECRET_ACCESS_KEY: ${{ steps.aws-creds.outputs.aws-secret-access-key }}
-          AWS_SESSION_TOKEN: ${{ steps.aws-creds.outputs.aws-session-token }}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
           GITHUB_OWNER: rancher
           IDENTIFIER: ${{github.run_id}}
           ZONE: ${{secrets.ZONE}}
-          ACME_SERVER_URL: https://acme-v02.api.letsencrypt.org/directory
-          RANCHER_INSECURE: false
         run: |
-          ./run_tests.sh
-      # https://github.com/actions/github-script
-      - uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+          bash .github/workflows/scripts/run-in-nix-container.sh "bash .github/workflows/scripts/execute-tests.sh"
+
+      - name: 'Comment PR e2e pass'
+        # https://github.com/actions/github-script/releases
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         if: steps.release-please.outputs.pr
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            github.rest.issues.createComment({
-              issue_number: ${{ fromJson(steps.release-please.outputs.pr).number }},
-              owner: "${{ github.repository_owner }}",
-              repo: "${{ github.event.repository.name }}",
-              body: "End to End Tests Passed! \n ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            })
+            const scriptPath = `${process.env.GITHUB_WORKSPACE}/.github/workflows/scripts/pr-e2e-pass.js`;
+            const { default: script } = await import(scriptPath);
+            context.payload.pull_request = { number: ${{ fromJson(steps.release-please.outputs.pr).number }} };
+            await script({ github, context });

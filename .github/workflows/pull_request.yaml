@@ -1,0 +1,139 @@
+name: pull_request
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_OWNER: ${{ github.repository_owner }}
+
+permissions: {}
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/rancher/ci-image/nix:20260603-18
+    permissions:
+      contents: read
+    steps:
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 'Lint terraform'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/nix-run.sh "bash .github/workflows/scripts/lint-terraform.sh"
+
+  eslint:
+    name: 'Check GitHub scripts'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/rancher/ci-image/nix:20260603-18
+    permissions:
+      contents: read
+    steps:
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 'Check for github-script errors'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/nix-run.sh "bash .github/workflows/scripts/eslint.sh"
+
+  actionlint:
+    name: 'Lint Workflows'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/rancher/ci-image/nix:20260603-18
+    permissions:
+      contents: read
+    steps:
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 'Action lint'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/nix-run.sh "bash .github/workflows/scripts/actionlint.sh"
+
+  shellcheck:
+    name: 'Shellcheck'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/rancher/ci-image/nix:20260603-18
+    permissions:
+      contents: read
+    steps:
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 'Shell check'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/nix-run.sh "bash .github/workflows/scripts/shellcheck.sh"
+
+  validate-commit-message:
+    name: 'Validate Commit Message'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/rancher/ci-image/nix:20260603-18
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 'Check commit message'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/nix-run.sh "bash .github/workflows/scripts/validate-commit-message.sh ${{ github.event.number }}"
+
+  signed-commits:
+    name: 'Verify Signed Commits'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/rancher/ci-image/nix:20260603-18
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 'Check commit signatures'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/nix-run.sh "bash .github/workflows/scripts/check-signed-commits.sh ${{ github.event.number }}"
+
+  gitleaks:
+    name: 'Scan for Secrets'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/rancher/ci-image/nix:20260603-18
+    permissions:
+      contents: read
+    steps:
+      - name: 'Checkout'
+        # https://github.com/actions/checkout/releases
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 'Check for secrets'
+        shell: bash
+        run: |
+          bash .github/workflows/scripts/nix-run.sh "bash .github/workflows/scripts/gitleaks.sh"
+        continue-on-error: true

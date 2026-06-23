@@ -1,9 +1,9 @@
 terraform {
   required_version = ">= 1.5.0"
   required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = ">= 2.5"
+    file = {
+      source  = "rancher/file"
+      version = ">= 1.7.0"
     }
     aws = {
       source  = "hashicorp/aws"
@@ -20,6 +20,10 @@ terraform {
     acme = { # used in the access module
       source  = "vancluever/acme"
       version = ">= 2.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0"
     }
   }
 }

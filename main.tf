@@ -1,13 +1,11 @@
 locals {
-  release = var.release
-  role    = var.role
-  ssh_ip  = var.ssh_ip
-  # tflint-ignore: terraform_unused_declarations
-  ssh_ip_fail                = (local.ssh_ip == "" ? one([local.ssh_ip, "missing_ip"]) : false)
+  release                    = var.release
+  role                       = var.role
+  ssh_ip                     = var.ssh_ip
   ssh_user                   = var.ssh_user
   identifier                 = var.identifier
   local_file_path            = var.local_file_path
-  local_path                 = (local.local_file_path == "" ? "${abspath(path.root)}/rke2" : local.local_file_path)
+  local_path                 = (local.local_file_path == "" ? "${path.root}/rke2" : local.local_file_path)
   local_manifests_path       = var.local_manifests_path
   remote_workspace           = ((var.remote_workspace == "~" || var.remote_workspace == "") ? "/home/${local.ssh_user}" : var.remote_workspace) # https://github.com/hashicorp/terraform/issues/30243
   remote_path                = (var.remote_file_path == "" ? "${local.remote_workspace}/rke2_artifacts" : var.remote_file_path)
@@ -20,8 +18,20 @@ locals {
   start_timeout              = var.start_timeout
 }
 
+resource "terraform_data" "input_validation" {
+  lifecycle {
+    precondition {
+      condition     = local.ssh_ip != ""
+      error_message = "ssh_ip cannot be empty"
+    }
+  }
+}
+
 # if local path specified copy all files and folders to the remote_path directory
 resource "terraform_data" "copy_to_remote" {
+  depends_on = [
+    terraform_data.input_validation,
+  ]
   triggers_replace = {
     id = local.identifier
   }
@@ -72,7 +82,7 @@ resource "terraform_data" "configure" {
     ]
   }
   provisioner "file" {
-    source      = "${abspath(path.module)}/configure.sh"
+    source      = "${path.module}/configure.sh"
     destination = "${local.remote_workspace}/configure.sh"
   }
   provisioner "remote-exec" {
@@ -167,7 +177,7 @@ resource "terraform_data" "install" {
     ]
   }
   provisioner "file" {
-    source      = "${abspath(path.module)}/install.sh"
+    source      = "${path.module}/install.sh"
     destination = "${local.remote_workspace}/install.sh"
   }
   provisioner "remote-exec" {
@@ -344,7 +354,7 @@ resource "terraform_data" "start" {
     ]
   }
   provisioner "file" {
-    source      = "${abspath(path.module)}/start.sh"
+    source      = "${path.module}/start.sh"
     destination = "${local.remote_workspace}/start.sh"
   }
   provisioner "remote-exec" {
@@ -406,12 +416,12 @@ resource "terraform_data" "get_kubeconfig" {
       IP="${local.ssh_ip}"
       SSH_USER="${local.ssh_user}"
 
-      chmod +x "${abspath(path.module)}/get_kubeconfig.sh"
-      "${abspath(path.module)}/get_kubeconfig.sh" "$FILE" "$REMOTE_PATH" "$IP" "$SSH_USER"
+      chmod +x "${path.module}/get_kubeconfig.sh"
+      "${path.module}/get_kubeconfig.sh" "$FILE" "$REMOTE_PATH" "$IP" "$SSH_USER"
     EOT
   }
 }
-data "local_sensitive_file" "kubeconfig" {
+data "file_local" "kubeconfig" {
   count = (local.retrieve_kubeconfig == true ? 1 : 0)
   depends_on = [
     terraform_data.copy_to_remote,
@@ -426,5 +436,6 @@ data "local_sensitive_file" "kubeconfig" {
     terraform_data.start,
     terraform_data.get_kubeconfig,
   ]
-  filename = "${local.local_path}/kubeconfig"
+  directory = local.local_path
+  name      = "kubeconfig"
 }

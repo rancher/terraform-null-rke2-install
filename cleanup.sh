@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script is run by the run_tests.sh script to clean up AWS resources created during testing.
 # It can also be run independently to clean up resources by providing a cleanup ID.
@@ -136,6 +136,30 @@ for id in $resources_ids; do
     sleep $((attempts * 10))
     attempts=$((attempts + 1))
   done
+done
+
+# remove route 53 records
+echo "Clearing out Route 53 records if they were missed..."
+LOWER_IDENTIFIER=$(echo "$IDENTIFIER" | tr '[:upper:]' '[:lower:]')
+attempts=0
+while [ $attempts -lt $max_attempts ]; do
+  while read -r hz; do
+    if [ -z "$hz" ]; then
+      continue
+    fi
+    while read -r record; do
+      if [ -z "$record" ]; then
+        continue
+      fi
+      record_name=$(echo "$record" | jq -r '.Name')
+      record_type=$(echo "$record" | jq -r '.Type')
+      echo "   removing route 53 record $record_name of type $record_type from zone $hz..."
+      change_batch=$(jq -n --argjson rec "$record" '{"Changes": [{"Action": "DELETE", "ResourceRecordSet": $rec}]}')
+      aws route53 change-resource-record-sets --hosted-zone-id "$hz" --change-batch "$change_batch" > /dev/null 2>&1 || true
+    done <<<"$(aws route53 list-resource-record-sets --hosted-zone-id "$hz" | jq -c --arg ID "$LOWER_IDENTIFIER" '.ResourceRecordSets[]? | select(.Name | contains($ID))')"
+  done <<<"$(aws route53 list-hosted-zones | jq -r '.HostedZones[]?.Id')"
+  sleep $((attempts * 10))
+  attempts=$((attempts + 1))
 done
 
 echo "Cleanup completed."
