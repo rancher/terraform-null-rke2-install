@@ -1,13 +1,9 @@
 terraform {
   required_version = ">= 1.5.0"
   required_providers {
-    local = {
-      source  = "hashicorp/local"
-      version = ">= 2.5"
-    }
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 3.2"
+    file = {
+      source  = "rancher/file"
+      version = ">= 1.7.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -25,13 +21,12 @@ terraform {
       source  = "vancluever/acme"
       version = ">= 2.0"
     }
-    github = {
-      source  = "integrations/github"
-      version = "6.2.1"
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0"
     }
   }
 }
 provider "acme" {
   server_url = "https://acme-staging-v02.api.letsencrypt.org/directory"
 }
-provider "github" {}

@@ -84,7 +84,7 @@ module "this" {
     module.server,
   ]
   source          = "../../" # dev/test only source, for proper source see https://registry.terraform.io/modules/rancher/rke2-install/null/latest
-  local_file_path = "${abspath(path.root)}/rke2"
+  local_file_path = "${path.root}/rke2"
   ssh_ip          = module.server.server.public_ip
   ssh_user        = local.username
   release         = local.rke2_version

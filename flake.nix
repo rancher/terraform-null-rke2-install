@@ -42,43 +42,91 @@
               chmod +x $out/bin/leftovers
             '';
           };
-          aspellWithDicts = pkgs.aspellWithDicts (d: [d.en d.en-computers]);
 
-          devShellPackage = pkgs.symlinkJoin {
-            name = "dev-shell-package";
-            paths = with pkgs; [
-              actionlint
-              age
-              aspellWithDicts
-              awscli2
-              bashInteractive
-              curl
-              dig
-              eslint
-              gh
-              git
-              gitleaks
-              gnupg
-              go
-              golangci-lint
-              goreleaser
-              gotestfmt
-              gotestsum
-              jq
-              leftovers
-              less
-              openssh
-              openssl
-              shellcheck
-              tflint
-              tfsec
-              tfswitch
-              trivy
-              updatecli
-              vim
-              which
-              yq
-            ];
+        terraform-version = {
+          "selected" = "1.5.7";
+        };
+        terraform-prep = {
+          "x86_64-darwin" = {
+            "url" = "https://releases.hashicorp.com/terraform/${terraform-version.selected}/terraform_${terraform-version.selected}_darwin_amd64.zip";
+            "sha" = "sha256-R2t/sP+f403E7WlO8oO2zI/gSnb9Q4V3yV78R4oD+rI="; # You may need to update this sha if using an intel mac
+            "checksum" = "d142d10c01a2380a0de24ea64214f7620eb5e8d98dffde6414902c2e646d6fc3";
+          };
+          "aarch64-darwin" = {
+            "url" = "https://releases.hashicorp.com/terraform/${terraform-version.selected}/terraform_${terraform-version.selected}_darwin_arm64.zip";
+            "sha" = "sha256-23wz6xpEa3OkQ+LFW1MoRfe3DNVhAL7EyW8Vz6tfUMs=";
+            "checksum" = "db7c33eb1a446b73a443e2c55b532845f7b70cd56100bec4c96f15cfab5f50cb";
+          };
+          "x86_64-linux" = {
+            "url" = "https://releases.hashicorp.com/terraform/${terraform-version.selected}/terraform_${terraform-version.selected}_linux_amd64.zip";
+            "sha" = "sha256-wO17wy7lKuJVr5mCyMiKekxhBIXPHVX+6wN+q3X6CCw=";
+            "checksum" = "c0ed7bc32ee52ae255af9982c8c88a7a4c610485cf1d55feeb037eab75fa082c";
+          };
+          # linux container running on darwin or arm linux
+          "aarch64-linux" = {
+            "url" = "https://releases.hashicorp.com/terraform/${terraform-version.selected}/terraform_${terraform-version.selected}_linux_arm64.zip";
+            "sha" = "sha256-9LStfGtgiJYKZn40SVyuSQ+wcpR6n/Jmv1kp9TM1ZeQ=";
+            "checksum" = "f4b4ad7c6b6088960a667e34495cae490fb072947a9ff266bf5929f5333565e4";
+          };
+        };
+        terraform = pkgs.stdenv.mkDerivation {
+          name = "terraform-${terraform-version.selected}";
+          src = pkgs.fetchurl {
+            url = terraform-prep."${system}".url;
+            sha256 = terraform-prep."${system}".sha;
+          };
+          checksum = terraform-prep."${system}".checksum;
+          nativeBuildInputs = [ pkgs.unzip ];
+          phases = [ "installPhase" ];
+          installPhase = ''
+            echo "$checksum  $src" | sha256sum -c -
+            install -d $out/bin
+            unzip -o $src -d $out/bin
+            chmod +x $out/bin/terraform
+          '';
+        };
+
+        devPackages = [
+          # place our downloaded packages here
+          leftovers
+          terraform
+        ] ++ (with pkgs; [
+          # here are the packages from the nix repository
+          actionlint
+          age
+          awscli2
+          bashInteractive
+          cspell
+          curl
+          dig
+          eslint
+          gh
+          git
+          gitleaks
+          gnupg
+          go
+          golangci-lint
+          goreleaser
+          gotestfmt
+          gotestsum
+          jq
+          less
+          nodejs_26
+          openssh
+          openssl
+          shellcheck
+          tflint
+          tfsec
+          trivy
+          updatecli
+          vim
+          which
+          yq
+        ]);
+
+        devShellPackage = pkgs.symlinkJoin {
+          name = "dev-shell-package";
+          paths = devPackages;
           };
         in
         {
@@ -87,11 +135,6 @@
           devShells.default = pkgs.mkShell {
             buildInputs = [ devShellPackage ];
             shellHook = ''
-              while read word; do echo -e "*$word\n#" | aspell -a --dont-validate-words >/dev/null; done < aspell_custom.txt
-              homebin=$HOME/bin;
-              install -d $homebin;
-              tfswitch -b $homebin/terraform 1.5.7 &>/dev/null;
-              export PATH="$homebin:$PATH";
               export PS1="nix:# ";
             '';
           };
