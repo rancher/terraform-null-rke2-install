@@ -30,18 +30,20 @@ jobs:
           release-type: terraform-module
 
       - name: 'Checkout'
+        if: steps.release-please.outputs.pr
         # https://github.com/actions/checkout/releases
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: 'Free Disk Space Before Test'
+        if: steps.release-please.outputs.pr
         shell: bash
         run: |
           bash .github/workflows/scripts/free-disk-space.sh
 
       - name: 'Comment PR e2e wait'
+        if: steps.release-please.outputs.pr
         # https://github.com/actions/github-script/releases
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        if: steps.release-please.outputs.pr
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
@@ -51,6 +53,7 @@ jobs:
             await script({ github, context });
 
       - name: 'Configure AWS Credentials'
+        if: steps.release-please.outputs.pr
         # https://github.com/aws-actions/configure-aws-credentials/releases
         uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
@@ -71,9 +74,9 @@ jobs:
           bash .github/workflows/scripts/run-in-nix-container.sh "bash .github/workflows/scripts/execute-tests.sh"
 
       - name: 'Comment PR e2e pass'
+        if: steps.release-please.outputs.pr
         # https://github.com/actions/github-script/releases
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        if: steps.release-please.outputs.pr
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
