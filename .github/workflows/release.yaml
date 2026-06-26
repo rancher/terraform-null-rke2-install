@@ -6,6 +6,8 @@ on:
     - main
 
 env:
+  AWS_REGION: us-west-2
+  AWS_ROLE: arn:aws:iam::270074865685:role/terraform-module-ci-test
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
 permissions: {}
@@ -18,7 +20,7 @@ jobs:
       issues: write
       id-token: write
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 240 # 4 hours
     steps:
       - name: 'Release Please'
         # https://github.com/googleapis/release-please-action/releases
@@ -47,6 +49,15 @@ jobs:
             const { default: script } = await import(scriptPath);
             context.payload.pull_request = { number: ${{ fromJson(steps.release-please.outputs.pr).number }} };
             await script({ github, context });
+
+      - name: 'Configure AWS Credentials'
+        # https://github.com/aws-actions/configure-aws-credentials/releases
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        with:
+          role-to-assume: ${{env.AWS_ROLE}}
+          role-session-name: ${{github.run_id}}
+          aws-region: ${{env.AWS_REGION}}
+          role-duration-seconds: 14400 # 4 hours
 
       - name: Run Tests
         if: steps.release-please.outputs.pr
