@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.4](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.3...v1.3.4) (2026-07-16)
+
+
+### Bug Fixes
+
+* add aws credentials back to release ([#184](https://github.com/rancher/terraform-null-rke2-install/issues/184)) ([0e21e58](https://github.com/rancher/terraform-null-rke2-install/commit/0e21e587d76c1e85ad4a20fba8b042e1964a1cb0))
+* bump aws-actions/configure-aws-credentials from 6.2.0 to 6.2.1 ([#186](https://github.com/rancher/terraform-null-rke2-install/issues/186)) ([68b9409](https://github.com/rancher/terraform-null-rke2-install/commit/68b9409d6666303d9382c2b34a34b023abfb9bf7))
+* bump aws-actions/configure-aws-credentials from 6.2.1 to 6.2.2 ([#188](https://github.com/rancher/terraform-null-rke2-install/issues/188)) ([dfb6b5d](https://github.com/rancher/terraform-null-rke2-install/commit/dfb6b5d20ed331fece0ab3df5d9eea386909197d))
+* bump fossas/fossa-action from 1.9.0 to 2.0.0 ([#187](https://github.com/rancher/terraform-null-rke2-install/issues/187)) ([6734920](https://github.com/rancher/terraform-null-rke2-install/commit/67349208d06a8c1563cc9c8cb44e3909434513ff))
+* only run tests on release PR, not release ([#185](https://github.com/rancher/terraform-null-rke2-install/issues/185)) ([62cb7d9](https://github.com/rancher/terraform-null-rke2-install/commit/62cb7d9a07fe84b83d0f51039ead0c5c682b4810))
+* only run tests on release PR, not release ([#185](https://github.com/rancher/terraform-null-rke2-install/issues/185)) ([62cb7d9](https://github.com/rancher/terraform-null-rke2-install/commit/62cb7d9a07fe84b83d0f51039ead0c5c682b4810))
+* update flake ([#189](https://github.com/rancher/terraform-null-rke2-install/issues/189)) ([ff416c9](https://github.com/rancher/terraform-null-rke2-install/commit/ff416c9f7dae7d24013ec00dcce2595d24fab9ba))
+* update test suite, refactor workflows, and add agentic framework ([#182](https://github.com/rancher/terraform-null-rke2-install/issues/182)) ([2413dd5](https://github.com/rancher/terraform-null-rke2-install/commit/2413dd5e48cd622bebaa06b31bdbaf47771d07f4))
+
 ## [1.3.3](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.2...v1.3.3) (2026-04-21)
 
 
