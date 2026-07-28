@@ -104,9 +104,10 @@ module "this" {
   ]
   source = "../../" # change this to "rancher/rke2-install/null" per https://registry.terraform.io/modules/rancher/rke2-install/null/latest
   # version = "v0.2.7" # when using this example you will need to set the version
-  ssh_ip              = module.server.server.public_ip
-  ssh_user            = local.username
-  release             = local.rke2_version
+  ssh_ip   = module.server.server.public_ip
+  ssh_user = local.username
+  release  = local.rke2_version
+  # rpm_channel         = "testing" you can set the RPM channel to the testing channel to validate an RC release.
   local_file_path     = local.local_file_path
   retrieve_kubeconfig = true
   remote_workspace    = module.server.image.workfolder
