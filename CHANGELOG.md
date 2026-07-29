@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.5](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.4...v1.3.5) (2026-07-29)
+
+
+### Bug Fixes
+
+* bump actions/checkout from 7.0.0 to 7.0.1 ([#190](https://github.com/rancher/terraform-null-rke2-install/issues/190)) ([d0fc843](https://github.com/rancher/terraform-null-rke2-install/commit/d0fc8437da50fbe33bc3bdfec2e6507a081f85b9))
+* bump aws-actions/configure-aws-credentials from 6.2.2 to 6.2.3 ([#191](https://github.com/rancher/terraform-null-rke2-install/issues/191)) ([bd4498d](https://github.com/rancher/terraform-null-rke2-install/commit/bd4498d61aa8a92027173124d9f71ab3ef607211))
+* removing flakey candidate test ([#193](https://github.com/rancher/terraform-null-rke2-install/issues/193)) ([eabc242](https://github.com/rancher/terraform-null-rke2-install/commit/eabc242f120dd735ba96fe205e07a25653972bd3))
+* standardize test variables, test data, and upgrade modules ([#194](https://github.com/rancher/terraform-null-rke2-install/issues/194)) ([bf5297d](https://github.com/rancher/terraform-null-rke2-install/commit/bf5297dac9cc3993b2f82ccf9434b6c1b26094cf))
+
 ## [1.3.4](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.3...v1.3.4) (2026-07-16)
 
 
