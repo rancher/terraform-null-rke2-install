@@ -22,7 +22,9 @@ examples/**/51-*
 *.DS_*
 id_ed25519_*
 examples/*/data
+test/data
 .claude
 .claude/**
 *.log
 node_modules
+!.agent/rules/terraform.instructions.md

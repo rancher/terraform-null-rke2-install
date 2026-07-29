@@ -13,3 +13,7 @@ variable "rke2_version" {
 variable "zone" {
   type = string
 }
+variable "local_file_path" {
+  type    = string
+  default = ""
+}

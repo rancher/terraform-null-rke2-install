@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Teardown(t *testing.T, directory string, keyPair *aws.Ec2Keypair) {
+func Teardown(t *testing.T, directory string, id string, keyPair *aws.Ec2Keypair) {
 	repoRoot, err0 := GetRepoRoot(t)
 	require.NoError(t, err0)
 	err := os.RemoveAll(fmt.Sprintf("%s/examples/%s/.terraform", repoRoot, directory))
@@ -38,6 +38,11 @@ func Teardown(t *testing.T, directory string, keyPair *aws.Ec2Keypair) {
 	rm(t, fmt.Sprintf("%s/examples/%s/kubeconfig-*.yaml", repoRoot, directory))
 	rm(t, fmt.Sprintf("%s/examples/%s/tf-*", repoRoot, directory))
 
+	if id != "" {
+		err7 := os.RemoveAll(filepath.Join(repoRoot, "test", "data", id))
+		require.NoError(t, err7)
+	}
+
 	aws.DeleteEC2KeyPairContext(t, t.Context(), keyPair)
 }
 
@@ -48,6 +53,27 @@ func rm(t *testing.T, path string) {
 		err2 := os.RemoveAll(file)
 		require.NoError(t, err2)
 	}
+}
+
+func hasVariableDeclared(t *testing.T, directory, varName string) bool {
+	repoRoot, err := GetRepoRoot(t)
+	require.NoError(t, err)
+	dirPath := filepath.Join(repoRoot, "examples", directory)
+
+	tfFiles, err := filepath.Glob(filepath.Join(dirPath, "*.tf"))
+	require.NoError(t, err)
+
+	for _, file := range tfFiles {
+		content, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		pattern := fmt.Sprintf(`variable "%s"`, varName)
+		if strings.Contains(string(content), pattern) {
+			return true
+		}
+	}
+	return false
 }
 
 func Setup(t *testing.T, directory string, region string, owner string, id string, terraformVars map[string]any) (*terraform.Options, *aws.Ec2Keypair) {
@@ -69,9 +95,25 @@ func Setup(t *testing.T, directory string, region string, owner string, id strin
 
 	aws.AddTagsToResourceContext(t, t.Context(), region, *result.KeyPairs[0].KeyPairId, map[string]string{"Name": keyPairName, "Owner": owner})
 
-	terraformVars["key_name"] = keyPairName
-	terraformVars["key"] = keyPair.PublicKey
-	terraformVars["identifier"] = id
+	repoRoot, err0 := GetRepoRoot(t)
+	require.NoError(t, err0)
+
+	// Ensure the test/data/${id} directory exists
+	errMkdir := os.MkdirAll(filepath.Join(repoRoot, "test", "data", id), 0755)
+	require.NoError(t, errMkdir)
+
+	if hasVariableDeclared(t, directory, "key_name") {
+		terraformVars["key_name"] = keyPairName
+	}
+	if hasVariableDeclared(t, directory, "key") {
+		terraformVars["key"] = keyPair.PublicKey
+	}
+	if hasVariableDeclared(t, directory, "identifier") {
+		terraformVars["identifier"] = id
+	}
+	if hasVariableDeclared(t, directory, "local_file_path") {
+		terraformVars["local_file_path"] = filepath.Join(repoRoot, "test", "data", id)
+	}
 
 	retryableTerraformErrors := map[string]string{
 		// The reason is unknown, but eventually these succeed after a few retries.
@@ -84,8 +126,6 @@ func Setup(t *testing.T, directory string, region string, owner string, id strin
 		".*i/o timeout.*":                            "Failed due to transient network error.",
 		".*curl.*exit status 7.*":                    "Failed due to transient network error.",
 	}
-	repoRoot, err0 := GetRepoRoot(t)
-	require.NoError(t, err0)
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: fmt.Sprintf("%s/examples/%s", repoRoot, directory),
 		// Variables to pass to our Terraform code using -var options

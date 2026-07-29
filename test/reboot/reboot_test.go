@@ -32,7 +32,7 @@ func TestReboot(t *testing.T) {
 	sshAgent := ssh.SSHAgentWithKeyPair(t, t.Context(), keyPair.KeyPair)
 	defer sshAgent.Stop()
 	terraformOptions.SshAgent = sshAgent
-	defer util.Teardown(t, directory, keyPair)
+	defer util.Teardown(t, directory, id, keyPair)
 	defer terraform.DestroyContext(t, t.Context(), terraformOptions)
 	terraform.InitAndApplyContext(t, t.Context(), terraformOptions)
 }

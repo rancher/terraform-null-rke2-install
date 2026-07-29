@@ -39,7 +39,7 @@ resource "random_pet" "server" {
 
 module "access" {
   source                     = "rancher/access/aws"
-  version                    = "v4.0.2"
+  version                    = "v4.0.6"
   vpc_name                   = "${local.project_name}-vpc"
   vpc_public                 = true
   security_group_name        = "${local.project_name}-sg"
@@ -52,7 +52,7 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v2.0.1"
+  version                    = "v2.0.4"
   image_type                 = local.image
   server_name                = "${local.project_name}-${random_pet.server.id}"
   server_type                = "small"
