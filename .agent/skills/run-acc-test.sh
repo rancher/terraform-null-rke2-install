@@ -2,6 +2,7 @@
 #
 # Skill: run-acc-test.sh
 # Description: Safely runs a specific Terraform provider acceptance test within the Nix environment.
+#              It explicitly keeps necessary AWS and Terraform environment variables so tests don't fail.
 # Usage: ./run-acc-test.sh <TestName>
 
 set -euo pipefail
@@ -24,4 +25,14 @@ nix develop --ignore-environment \
   --keep NIX_SSL_CERT_FILE \
   --keep NIX_ENV_LOADED \
   --keep TERM \
+  --keep AWS_ROLE \
+  --keep AWS_REGION \
+  --keep AWS_DEFAULT_REGION \
+  --keep AWS_ACCESS_KEY_ID \
+  --keep AWS_SECRET_ACCESS_KEY \
+  --keep AWS_SESSION_TOKEN \
+  --keep TF_VAR_aws_access_key_id \
+  --keep TF_VAR_aws_secret_access_key \
+  --keep TF_VAR_aws_session_token \
+  --keep TF_VAR_aws_region \
   --command bash -c "./run_tests.sh -t ${TEST_NAME}"

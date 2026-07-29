@@ -30,7 +30,7 @@ func TestLatest(t *testing.T) {
 	defer sshAgent.Stop()
 	terraformOptions.SshAgent = sshAgent
 
-	defer util.Teardown(t, directory, keyPair)
+	defer util.Teardown(t, directory, id, keyPair)
 	defer terraform.DestroyContext(t, t.Context(), terraformOptions)
 	output, err := terraform.InitAndApplyContextE(t, t.Context(), terraformOptions)
 	t.Log(output)

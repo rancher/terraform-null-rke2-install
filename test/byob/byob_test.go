@@ -41,8 +41,8 @@ func TestByobConfigChange(t *testing.T) {
 	sshAgent := ssh.SSHAgentWithKeyPair(t, t.Context(), keyPair.KeyPair)
 	defer sshAgent.Stop()
 	terraformOptions.SshAgent = sshAgent
-	delete(terraformOptions.Vars, "key_name")
-	defer util.Teardown(t, directory, keyPair)
+
+	defer util.Teardown(t, directory, id, keyPair)
 
 	url := fmt.Sprintf("https://github.com/rancher/rke2/releases/download/%s", release)
 

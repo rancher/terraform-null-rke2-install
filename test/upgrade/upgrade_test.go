@@ -41,7 +41,7 @@ func TestUpgrade(t *testing.T) {
 	defer sshAgent.Stop()
 	terraformOptions.SshAgent = sshAgent
 
-	defer util.Teardown(t, directory, keyPair)
+	defer util.Teardown(t, directory, id, keyPair)
 	defer terraform.DestroyContext(t, t.Context(), terraformOptions)
 
 	// Initial deployment

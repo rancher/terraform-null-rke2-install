@@ -10,3 +10,7 @@ variable "key_name" {
 variable "rke2_version" {
   type = string
 }
+variable "local_file_path" {
+  type    = string
+  default = ""
+}

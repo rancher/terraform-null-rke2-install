@@ -18,7 +18,7 @@ locals {
   ssh_key         = var.key
   key_name        = var.key_name
   rke2_version    = "latest"
-  local_file_path = "${path.root}/data/${local.identifier}"
+  local_file_path = (var.local_file_path != "" ? var.local_file_path : "${path.root}/data/${local.identifier}")
 }
 
 data "http" "myip" {
@@ -39,7 +39,7 @@ resource "random_pet" "server" {
 
 module "access" {
   source                     = "rancher/access/aws"
-  version                    = "v4.0.2"
+  version                    = "v4.0.6"
   vpc_name                   = "${local.project_name}-vpc"
   security_group_name        = "${local.project_name}-sg"
   security_group_type        = "egress"
@@ -51,7 +51,7 @@ module "server" {
     module.access,
   ]
   source                     = "rancher/server/aws"
-  version                    = "v2.0.1"
+  version                    = "v2.0.4"
   image_type                 = local.image
   server_name                = "${local.project_name}-${random_pet.server.id}"
   server_type                = "small"
@@ -86,7 +86,7 @@ module "server" {
 
 module "config" {
   source          = "rancher/rke2-config/local"
-  version         = "v1.0.1"
+  version         = "v1.0.4"
   local_file_path = local.local_file_path
 }
 
