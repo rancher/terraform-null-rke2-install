@@ -11,6 +11,7 @@ require (
 	github.com/hashicorp/go-getter v1.8.6
 	github.com/hashicorp/go-version v1.9.0
 	github.com/stretchr/testify v1.11.1
+	golang.org/x/crypto v0.49.0
 )
 
 require (
@@ -121,7 +122,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.43.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/net v0.52.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect

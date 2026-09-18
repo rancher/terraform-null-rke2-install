@@ -35,7 +35,7 @@ resource "random_pet" "server" {
 
 module "access" {
   source                     = "rancher/access/aws"
-  version                    = "v4.0.6"
+  version                    = "v5.0.0"
   vpc_name                   = "${local.project_name}-vpc"
   security_group_name        = "${local.project_name}-sg"
   security_group_type        = "egress" # when installing with rpms you need egress access

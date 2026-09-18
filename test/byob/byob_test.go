@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"
-	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/go-getter"
 	util "github.com/rancher/terraform-null-rke2-install/test"
@@ -36,11 +35,10 @@ func TestByobConfigChange(t *testing.T) {
 	terraformVars := map[string]any{
 		"rke2_version": release,
 	}
-	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, terraformVars)
+	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, "ed25519", terraformVars)
 
-	sshAgent := ssh.SSHAgentWithKeyPair(t, t.Context(), keyPair.KeyPair)
-	defer sshAgent.Stop()
-	terraformOptions.SshAgent = sshAgent
+	cleanupAgent := util.SSHAgentWithKeyPair(t, keyPair.PrivateKey, terraformOptions)
+	defer cleanupAgent()
 
 	defer util.Teardown(t, directory, id, keyPair)
 

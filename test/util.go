@@ -2,10 +2,16 @@ package test
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 
 	//"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -15,9 +21,11 @@ import (
 	"github.com/google/go-github/v53/github"
 	aws "github.com/gruntwork-io/terratest/modules/aws"
 	g "github.com/gruntwork-io/terratest/modules/git"
+	test_ssh "github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/go-version"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/ssh"
 )
 
 func Teardown(t *testing.T, directory string, id string, keyPair *aws.Ec2Keypair) {
@@ -76,17 +84,108 @@ func hasVariableDeclared(t *testing.T, directory, varName string) bool {
 	return false
 }
 
-func Setup(t *testing.T, directory string, region string, owner string, id string, terraformVars map[string]any) (*terraform.Options, *aws.Ec2Keypair) {
+func generateEd25519KeyPair(t *testing.T) *test_ssh.KeyPair {
+	pubKey, privKey, errGen := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, errGen)
+
+	sshPubKey, errPub := ssh.NewPublicKey(pubKey)
+	require.NoError(t, errPub)
+	pubKeyBytes := ssh.MarshalAuthorizedKey(sshPubKey)
+
+	privBlock, errPriv := ssh.MarshalPrivateKey(privKey, "")
+	require.NoError(t, errPriv)
+	privKeyBytes := pem.EncodeToMemory(privBlock)
+
+	return &test_ssh.KeyPair{
+		PublicKey:  string(pubKeyBytes),
+		PrivateKey: string(privKeyBytes),
+	}
+}
+
+func generateRSAKeyPair(t *testing.T) *test_ssh.KeyPair {
+	privKey, errGen := rsa.GenerateKey(rand.Reader, 4096)
+	require.NoError(t, errGen)
+	require.NoError(t, privKey.Validate())
+
+	sshPubKey, errPub := ssh.NewPublicKey(&privKey.PublicKey)
+	require.NoError(t, errPub)
+	pubKeyBytes := ssh.MarshalAuthorizedKey(sshPubKey)
+
+	privBlock := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
+	}
+	privKeyBytes := pem.EncodeToMemory(privBlock)
+
+	return &test_ssh.KeyPair{
+		PublicKey:  string(pubKeyBytes),
+		PrivateKey: string(privKeyBytes),
+	}
+}
+
+// SSHAgentWithKeyPair starts a system ssh-agent, loads the private key,
+// sets SSH_AUTH_SOCK in terraformOptions, and returns a cleanup function.
+func SSHAgentWithKeyPair(t *testing.T, privateKey string, options *terraform.Options) func() {
+	cmd := exec.Command("ssh-agent", "-s")
+	out, err := cmd.Output()
+	require.NoError(t, err)
+
+	var authSock string
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.HasPrefix(line, "SSH_AUTH_SOCK=") {
+			authSock = strings.Split(strings.Split(line, "=")[1], ";")[0]
+			break
+		}
+	}
+
+	addCmd := exec.Command("ssh-add", "-")
+	addCmd.Env = append(os.Environ(), "SSH_AUTH_SOCK="+authSock)
+	addCmd.Stdin = strings.NewReader(privateKey)
+	errAdd := addCmd.Run()
+	require.NoError(t, errAdd)
+
+	if options.EnvVars == nil {
+		options.EnvVars = map[string]string{}
+	}
+	options.EnvVars["SSH_AUTH_SOCK"] = authSock
+
+	return func() {
+		killCmd := exec.Command("ssh-agent", "-k")
+		killCmd.Env = append(os.Environ(), "SSH_AUTH_SOCK="+authSock)
+		_ = killCmd.Run()
+	}
+}
+
+func Setup(t *testing.T, directory string, region string, owner string, id string, keyType string, terraformVars map[string]any) (*terraform.Options, *aws.Ec2Keypair) {
 
 	// Create an EC2 KeyPair that we can use for SSH access
 	keyPairName := fmt.Sprintf("terraform-ci-%s", id)
-	keyPair := aws.CreateAndImportEC2KeyPairContext(t, t.Context(), region, keyPairName)
-	//log.Print(keyPair.KeyPair.PrivateKey)
 
-	// tag the key pair so we can find in the access module
 	client, err1 := aws.NewEc2ClientContextE(t, t.Context(), region)
 	require.NoError(t, err1)
 
+	var baseKeyPair *test_ssh.KeyPair
+	if keyType == "rsa" {
+		baseKeyPair = generateRSAKeyPair(t)
+	} else {
+		// Generate a more advanced Ed25519 key pair manually
+		baseKeyPair = generateEd25519KeyPair(t)
+	}
+
+	_, errImport := client.ImportKeyPair(t.Context(), &ec2.ImportKeyPairInput{
+		KeyName:           &keyPairName,
+		PublicKeyMaterial: []byte(baseKeyPair.PublicKey),
+	})
+	require.NoError(t, errImport)
+
+	keyPair := &aws.Ec2Keypair{
+		Name:    keyPairName,
+		Region:  region,
+		KeyPair: baseKeyPair,
+	}
+	//log.Print(keyPair.KeyPair.PrivateKey)
+
+	// tag the key pair so we can find in the access module
 	input := &ec2.DescribeKeyPairsInput{
 		KeyNames: []string{keyPairName},
 	}
@@ -126,6 +225,7 @@ func Setup(t *testing.T, directory string, region string, owner string, id strin
 		".*i/o timeout.*":                            "Failed due to transient network error.",
 		".*curl.*exit status 7.*":                    "Failed due to transient network error.",
 	}
+
 	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		TerraformDir: fmt.Sprintf("%s/examples/%s", repoRoot, directory),
 		// Variables to pass to our Terraform code using -var options

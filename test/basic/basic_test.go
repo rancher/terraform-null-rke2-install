@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"
-	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 
 	util "github.com/rancher/terraform-null-rke2-install/test"
@@ -27,12 +26,11 @@ func TestBasic(t *testing.T) {
 	}
 	owner := "terraform-ci@suse.com"
 	terraformVars := map[string]any{}
-	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, terraformVars)
+	terraformOptions, keyPair := util.Setup(t, directory, region, owner, id, "ed25519", terraformVars)
 	delete(terraformOptions.Vars, "key_name")
 
-	sshAgent := ssh.SSHAgentWithKeyPair(t, t.Context(), keyPair.KeyPair)
-	defer sshAgent.Stop()
-	terraformOptions.SshAgent = sshAgent
+	cleanupAgent := util.SSHAgentWithKeyPair(t, keyPair.PrivateKey, terraformOptions)
+	defer cleanupAgent()
 
 	defer util.Teardown(t, directory, id, keyPair)
 	defer terraform.DestroyContext(t, t.Context(), terraformOptions)
