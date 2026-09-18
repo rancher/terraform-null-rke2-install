@@ -14,37 +14,33 @@ check_ssh_agent() {
   fi
 }
 
-main() {
-  local file="${1}"
-  local remote_path="${2}"
-  local ip="${3}"
-  local ssh_user="${4}"
+FILE="${1}"
+REMOTE_PATH="${2}"
+IP="${3}"
+SSH_USER="${4}"
 
-  check_ssh_agent
+check_ssh_agent
 
-  local agent_opts=""
-  if [ -n "${SSH_AUTH_SOCK:-}" ]; then
-    # Explicitly setting IdentityAgent forces OpenSSH to use the socket, bypassing
-    # edge cases where macOS subshells or scp might otherwise drop the environment.
-    agent_opts="-o IdentityAgent=${SSH_AUTH_SOCK}"
-  fi
+AGENT_OPTS=""
+if [ -n "${SSH_AUTH_SOCK:-}" ]; then
+  # Explicitly setting IdentityAgent forces OpenSSH to use the socket, bypassing
+  # edge cases where macOS subshells or scp might otherwise drop the environment.
+  AGENT_OPTS="-o IdentityAgent=${SSH_AUTH_SOCK}"
+fi
 
-  case "${ip}" in
-    *:*)
-      # ipv6
-      # shellcheck disable=SC2086 # agent_opts must word-split to pass correctly
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${agent_opts} "${ssh_user}"@\["${ip}"\]:"${remote_path}" "${file}"
-      ;;
-    *)
-      # ipv4
-      # shellcheck disable=SC2086
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${agent_opts} "${ssh_user}"@"${ip}":"${remote_path}" "${file}"
-      ;;
-  esac
+case "${IP}" in
+  *:*)
+    # ipv6
+    # shellcheck disable=SC2086 # AGENT_OPTS must word-split to pass correctly
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${AGENT_OPTS} "${SSH_USER}"@\["${IP}"\]:"${REMOTE_PATH}" "${FILE}"
+    ;;
+  *)
+    # ipv4
+    # shellcheck disable=SC2086
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${AGENT_OPTS} "${SSH_USER}"@"${IP}":"${REMOTE_PATH}" "${FILE}"
+    ;;
+esac
 
-  sed "s/127.0.0.1/${ip}/g" "${file}" > "${file}.tmp" && mv -f "${file}.tmp" "${file}"
-  sed "s/::1/${ip}/g" "${file}" > "${file}.tmp" && mv -f "${file}.tmp" "${file}"
-  chmod 0600 "${file}"
-}
-
-main "$@"
+sed "s/127.0.0.1/${IP}/g" "${FILE}" > "${FILE}.tmp" && mv -f "${FILE}.tmp" "${FILE}"
+sed "s/::1/${IP}/g" "${FILE}" > "${FILE}.tmp" && mv -f "${FILE}.tmp" "${FILE}"
+chmod 0600 "${FILE}"
