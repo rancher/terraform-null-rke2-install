@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.6](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.5...v1.3.6) (2026-09-18)
+
+
+### Bug Fixes
+
+* bump aws-actions/configure-aws-credentials from 6.2.3 to 6.2.4 ([#197](https://github.com/rancher/terraform-null-rke2-install/issues/197)) ([e92ca97](https://github.com/rancher/terraform-null-rke2-install/commit/e92ca97868b9127ea50b94900d9ea79880bbd421))
+* bump rancher-eio/read-vault-secrets ([#195](https://github.com/rancher/terraform-null-rke2-install/issues/195)) ([2fdd7b3](https://github.com/rancher/terraform-null-rke2-install/commit/2fdd7b3ccdbd0db43b986c733de87be22c3cc156))
+* update modules and resolve scp errors ([#198](https://github.com/rancher/terraform-null-rke2-install/issues/198)) ([1d8581c](https://github.com/rancher/terraform-null-rke2-install/commit/1d8581c5665126acdd788eb196c4aeafe8120c13))
+
 ## [1.3.5](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.4...v1.3.5) (2026-07-29)
 
 
