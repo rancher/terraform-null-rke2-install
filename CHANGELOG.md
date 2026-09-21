@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.7](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.6...v1.3.7) (2026-09-21)
+
+
+### Bug Fixes
+
+* bump aws-actions/configure-aws-credentials from 6.2.4 to 6.3.0 ([#199](https://github.com/rancher/terraform-null-rke2-install/issues/199)) ([3ef62cd](https://github.com/rancher/terraform-null-rke2-install/commit/3ef62cd2464150af1767b6046878618197866401))
+
 ## [1.3.6](https://github.com/rancher/terraform-null-rke2-install/compare/v1.3.5...v1.3.6) (2026-09-18)
 
 
